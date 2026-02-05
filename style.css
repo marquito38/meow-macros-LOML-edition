@@ -1,52 +1,41 @@
 /* --- BASE & BACKGROUND --- */
 body {
-    background-color: #eff6ff; /* blue-50 */
+    background-color: #eff6ff;
     background-image: radial-gradient(#dbeafe 2px, transparent 2px);
     background-size: 32px 32px;
     min-height: 100vh;
-    position: relative;
 }
 
-/* --- FLORAL OVERLAY --- */
-body::before {
+/* --- FLORAL ACCENTS --- */
+body::before, body::after {
     content: "🌸";
     position: fixed;
-    top: 10%;
-    left: 5%;
     font-size: 2rem;
     opacity: 0.15;
     z-index: -1;
-    animation: drift 15s infinite ease-in-out;
+    pointer-events: none;
+    animation: float 10s infinite ease-in-out;
 }
+body::before { top: 10%; left: 5%; }
+body::after { bottom: 20%; right: 10%; animation-delay: -5s; }
 
-body::after {
-    content: "🌼";
-    position: fixed;
-    bottom: 15%;
-    right: 8%;
-    font-size: 1.8rem;
-    opacity: 0.15;
-    z-index: -1;
-    animation: drift 12s infinite ease-in-out reverse;
-}
-
-@keyframes drift {
+@keyframes float {
     0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    50% { transform: translate(15px, 25px) rotate(15deg); }
+    50% { transform: translate(10px, 20px) rotate(15deg); }
 }
 
 /* --- KAWAI CARD STYLES --- */
 .kawaii-card {
     background: white;
-    border-radius: 2rem;
-    box-shadow: 0 12px 30px -5px rgba(165, 216, 255, 0.4);
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(165, 216, 255, 0.4);
     border: 1px solid white;
 }
 
 .kawaii-input {
     background-color: #f8fafc;
     border: 2px solid #e2e8f0;
-    border-radius: 1.25rem;
+    border-radius: 1rem;
     padding: 0.75rem;
     transition: all 0.2s ease;
 }
@@ -58,7 +47,7 @@ body::after {
     box-shadow: 0 0 0 4px rgba(165, 216, 255, 0.3);
 }
 
-/* --- MINT GREEN BUTTON --- */
+/* --- BUTTONS --- */
 .btn-mint {
     background-color: #34d399;
     color: white;
@@ -67,7 +56,6 @@ body::after {
     transition: all 0.2s;
     box-shadow: 0 8px 20px -4px rgba(52, 211, 153, 0.4);
 }
-.btn-mint:hover { background-color: #10b981; }
 .btn-mint:active { transform: scale(0.95); }
 
 /* --- UTILITIES --- */
