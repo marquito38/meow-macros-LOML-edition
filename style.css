@@ -1,24 +1,38 @@
 /* --- BASE & BACKGROUND --- */
 body {
-    background-color: #eff6ff; /* light blue */
+    background-color: #eff6ff; /* blue-50 */
     background-image: radial-gradient(#dbeafe 2px, transparent 2px);
     background-size: 32px 32px;
     min-height: 100vh;
+    position: relative;
 }
 
-/* --- FLOATING FLORAL ACCENTS --- */
-.flower {
+/* --- FLORAL OVERLAY --- */
+body::before {
+    content: "🌸";
     position: fixed;
-    pointer-events: none;
+    top: 10%;
+    left: 5%;
+    font-size: 2rem;
+    opacity: 0.15;
     z-index: -1;
-    opacity: 0.25;
-    animation: float-flower 12s infinite ease-in-out;
+    animation: drift 15s infinite ease-in-out;
 }
 
-@keyframes float-flower {
+body::after {
+    content: "🌼";
+    position: fixed;
+    bottom: 15%;
+    right: 8%;
+    font-size: 1.8rem;
+    opacity: 0.15;
+    z-index: -1;
+    animation: drift 12s infinite ease-in-out reverse;
+}
+
+@keyframes drift {
     0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    33% { transform: translate(15px, 25px) rotate(10deg); }
-    66% { transform: translate(-10px, 15px) rotate(-10deg); }
+    50% { transform: translate(15px, 25px) rotate(15deg); }
 }
 
 /* --- KAWAI CARD STYLES --- */
@@ -44,7 +58,7 @@ body {
     box-shadow: 0 0 0 4px rgba(165, 216, 255, 0.3);
 }
 
-/* --- MINT GREEN BUTTONS --- */
+/* --- MINT GREEN BUTTON --- */
 .btn-mint {
     background-color: #34d399;
     color: white;
@@ -52,10 +66,9 @@ body {
     font-weight: 800;
     transition: all 0.2s;
     box-shadow: 0 8px 20px -4px rgba(52, 211, 153, 0.4);
-    border: none;
 }
-.btn-mint:active { transform: scale(0.95); }
 .btn-mint:hover { background-color: #10b981; }
+.btn-mint:active { transform: scale(0.95); }
 
 /* --- UTILITIES --- */
 .no-scrollbar::-webkit-scrollbar { display: none; }
