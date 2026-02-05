@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meow Macros: LOML Edition</title>
+    
+    <!-- React & DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        nunito: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        'kawaii-blue': '#eff6ff',
+                        'kawaii-mint': '#34d399',
+                        'kawaii-mint-dark': '#10b981',
+                        'pastel-blue': '#93c5fd',
+                        'pastel-pink': '#f9a8d4',
+                        'pastel-yellow': '#fde047',
+                        'pastel-teal': '#99f6e4',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts: Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+    <!-- Linking to LOML-specific CSS -->
+    <link rel="stylesheet" href="loml_style.css">
+</head>
+<body class="font-nunito overflow-x-hidden selection:bg-blue-200">
+    <div id="root"></div>
+    <!-- Linking to LOML-specific Script -->
+    <script type="text/babel" src="loml_script.js"></script>
+</body>
+</html>
