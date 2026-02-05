@@ -1,23 +1,3 @@
-// --- GLOBAL INITIALIZATION: FORCE START (LOML Edition Only) ---
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        const screen = document.getElementById('launch-screen');
-        if (screen) {
-            screen.style.opacity = '0';
-            setTimeout(() => { if (screen) screen.style.display = 'none'; }, 500);
-        }
-    }, 2000);
-});
-
-// Safety Shield: Force hide after 4 seconds regardless of load event
-setTimeout(() => {
-    const screen = document.getElementById('launch-screen');
-    if (screen && screen.style.display !== 'none') {
-        screen.style.opacity = '0';
-        setTimeout(() => { screen.style.display = 'none'; }, 500);
-    }
-}, 4000);
-
 const { useState, useEffect, useMemo, useRef } = React;
 
 // --- CONSTANTS: LOML EDITION ---
