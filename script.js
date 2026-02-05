@@ -186,7 +186,7 @@ function App() {
     };
 
     return (
-        <div className="max-w-md mx-auto min-h-screen px-4 py-6 relative font-nunito">
+        <div className="max-w-md mx-auto min-h-screen px-4 py-6 relative font-nunito text-slate-800">
             
             {/* WELCOME MODAL */}
             {welcomeModal && (
@@ -330,7 +330,7 @@ function App() {
             {/* SUCCESS FEEDBACK */}
             {successModalData && (
                 <div className="fixed inset-0 z-[100] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModalData(null)}>
-                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
+                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-100">
                         <CatGif className="w-32 h-32 mx-auto mb-6" />
                         <h2 className="text-2xl font-black text-blue-400 mb-2">{successModalData.title}</h2>
                         <p className="text-lg text-slate-500 font-bold mb-6 italic">"{successModalData.message}"</p>
