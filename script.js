@@ -1,4 +1,5 @@
 // --- LAUNCH SCREEN LOGIC ---
+// Ensures the launch screen (defined in HTML) fades out after the app loads
 window.addEventListener('load', () => {
     const splash = document.getElementById('launch-screen');
     if (splash) {
@@ -20,7 +21,7 @@ const GOALS = {
     fiber: 30 
 };
 
-// PRELOADED LIBRARY (Spreadsheet Alignment)
+// FULL PRELOADED LIBRARY (Spreadsheet Alignment)
 const STARTER_LIBRARY = [
     { id: '1', name: 'Egg Whites', carbs: 0, protein: 11.7, fat: 0, fiber: 0, measure: 'g' },
     { id: '2', name: 'Greek Yogurt', carbs: 4.1, protein: 10.6, fat: 0, fiber: 0, measure: 'g' },
@@ -29,7 +30,13 @@ const STARTER_LIBRARY = [
     { id: '5', name: 'Garbanzo Beans', carbs: 16.9, protein: 5.4, fat: 1.5, fiber: 4.6, measure: 'g' },
     { id: '6', name: 'Avocado', carbs: 8, protein: 2, fat: 14, fiber: 6, measure: 'g' },
     { id: '7', name: 'Quinoa', carbs: 26, protein: 5, fat: 2, fiber: 2, measure: 'g' },
-    { id: '8', name: 'Chicken Breast', carbs: 0, protein: 31, fat: 3, fiber: 0, measure: 'g' }
+    { id: '8', name: 'Chicken Breast', carbs: 0, protein: 31, fat: 3, fiber: 0, measure: 'g' },
+    { id: '9', name: 'Ground Turkey', carbs: 0, protein: 20.6, fat: 7.3, fiber: 0, measure: 'g' },
+    { id: '10', name: 'Black Beans', carbs: 16, protein: 6, fat: 0, fiber: 5, measure: 'g' },
+    { id: '11', name: 'Whole Egg', carbs: 1, protein: 6, fat: 5, fiber: 0, measure: 'unit' },
+    { id: '12', name: 'Apple', carbs: 10, protein: 0, fat: 0, fiber: 2.4, measure: 'g' },
+    { id: '13', name: 'Corn', carbs: 7.2, protein: 0.8, fat: 0.4, fiber: 2, measure: 'g' },
+    { id: '14', name: 'Mixed Berries', carbs: 9, protein: 0.5, fat: 0, fiber: 3, measure: 'g' }
 ];
 
 const MOTIVATION_QUOTES = [
@@ -175,6 +182,25 @@ function App() {
         setFinishModalOpen(false);
     };
 
+    const openAddFood = (item = null) => {
+        if (item) {
+            const startWeight = item.measure === 'unit' ? 1 : 100;
+            setEditFood({ ...item, weight: startWeight });
+            setSelectedBaseItem(item);
+        } else {
+            setEditFood({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' });
+            setSelectedBaseItem(null);
+        }
+        setModalOpen(true);
+    };
+
+    const handleAddExercise = () => {
+        if (!newEx.name) return;
+        setActiveWorkout([...activeWorkout, { ...newEx, id: Date.now() }]);
+        setNewEx({ name: '', sets: 1, reps: 10, weight: 0, difficulty: '😏' });
+        setWorkoutModalOpen(false);
+    };
+
     return (
         <div className="max-w-md mx-auto min-h-screen px-4 py-6 relative font-nunito text-slate-800">
             {/* Floral Accents */}
@@ -188,7 +214,7 @@ function App() {
                         <CatGif className="w-32 h-32 mx-auto mb-6" />
                         <h2 className="text-2xl font-black text-blue-400 mb-4">Hello my love</h2>
                         <p className="text-slate-500 font-bold mb-8 italic">"Good luck on your journey. Your loving husband, Marco."</p>
-                        <button onClick={() => setWelcomeModal(false)} className="btn-mint w-full py-4 text-lg uppercase tracking-widest">Let's go!</button>
+                        <button onClick={() => setWelcomeModal(false)} className="btn-mint w-full py-4 text-lg uppercase tracking-widest font-black">Let's go!</button>
                     </div>
                 </div>
             )}
@@ -239,7 +265,7 @@ function App() {
                                         {item.weight}{item.measure} • {Math.round(calcCals(item.c, item.p, item.f))} cal
                                     </p>
                                 </div>
-                                <button onClick={() => setData({...data, history: {...data.history, [date]: todayLog.filter(i=>i.id!==item.id)}})} className="bg-red-50 text-red-200 p-2 rounded-2xl"><span className="material-icons-round text-lg">delete</span></button>
+                                <button onClick={() => setData({...data, history: {...data.history, [date]: todayLog.filter(i=>i.id!==item.id)}})} className="bg-red-50 text-red-200 p-2 rounded-2xl transition-colors hover:bg-red-100"><span className="material-icons-round text-lg">delete</span></button>
                             </div>
                         ))}
                     </div>
@@ -259,23 +285,23 @@ function App() {
                                 <button onClick={() => setActiveWorkout(activeWorkout.filter(i => i.id !== ex.id))} className="text-red-200"><span className="material-icons-round">remove_circle</span></button>
                             </div>
                         ))}
-                        <button onClick={() => setWorkoutModalOpen(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-5 rounded-[2rem] font-black uppercase flex items-center justify-center gap-2">
+                        <button onClick={() => setWorkoutModalOpen(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-5 rounded-[2rem] font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">
                             <span className="material-icons-round">add</span> Add Exercise
                         </button>
                     </div>
-                    {activeWorkout.length > 0 && <button onClick={() => setFinishModalOpen(true)} className="w-full btn-mint p-5 mt-8 uppercase text-lg tracking-widest">Finish Workout</button>}
+                    {activeWorkout.length > 0 && <button onClick={() => setFinishModalOpen(true)} className="w-full btn-mint p-5 mt-8 uppercase text-lg tracking-widest font-black">Finish Workout</button>}
                 </div>
             )}
 
             {view === 'library' && (
                 <div className="pb-20 safe-pb px-2">
                     <div className="flex items-center gap-4 mb-6">
-                        <button onClick={() => setView('home')} className="p-2 text-slate-400"><span className="material-icons-round">arrow_back</span></button>
+                        <button onClick={() => setView('home')} className="p-2 text-slate-400 hover:text-blue-400 transition-colors"><span className="material-icons-round">arrow_back</span></button>
                         <h2 className="text-2xl font-black text-blue-400">Food Library</h2>
                     </div>
                     <div className="relative mb-6">
                         <span className="material-icons-round absolute left-5 top-3.5 text-blue-200">search</span>
-                        <input className="w-full bg-white pl-14 pr-6 py-4 rounded-3xl shadow-sm outline-none font-bold text-sm text-slate-600 focus:ring-4 ring-blue-50" placeholder="Search foods..." value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} />
+                        <input className="w-full bg-white pl-14 pr-6 py-4 rounded-3xl shadow-sm outline-none font-bold text-sm text-slate-600 focus:ring-4 ring-blue-50 transition-all" placeholder="Search foods..." value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} />
                     </div>
                     <div className="space-y-3">
                         {data.library.filter(i => i.name.toLowerCase().includes(librarySearch.toLowerCase())).map(item => (
@@ -288,10 +314,42 @@ function App() {
                 </div>
             )}
 
+            {view === 'trends' && (
+                <div className="pb-24 safe-pb space-y-6 px-2">
+                    <h2 className="text-2xl font-black text-blue-400">Past Missions 📈</h2>
+                    <div className="space-y-4">
+                        {Object.keys(data.fitnessHistory).length === 0 ? (
+                            <div className="text-center py-10 opacity-30 italic"><p className="text-xs font-black">No missions logged yet!</p></div>
+                        ) : Object.keys(data.fitnessHistory).sort().reverse().map(d => (
+                            <div key={d} className="space-y-3">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">{d}</h3>
+                                {data.fitnessHistory[d].map(log => (
+                                    <div key={log.id} className="kawaii-card p-5 border-l-4 border-emerald-300">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <p className="font-black text-blue-500 uppercase tracking-tight text-sm leading-none mb-1">{log.quote}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase">{log.duration} mins • {log.calories} kcal</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                            {log.exercises.map((ex, i) => (
+                                                <span key={i} className="text-[8px] bg-blue-50 text-blue-400 px-2 py-0.5 rounded-full font-black uppercase">{ex.name}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* NAV BAR */}
             <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[400px] bg-white/95 backdrop-blur-md shadow-2xl rounded-[2.5rem] p-2 flex justify-around items-center z-40 border border-white">
                 <button onClick={() => setView('home')} className={`p-4 rounded-3xl transition-all ${view==='home'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">home</span></button>
                 <button onClick={() => setView('fitness')} className={`p-4 rounded-3xl transition-all ${view==='fitness'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">fitness_center</span></button>
+                <button onClick={() => setView('trends')} className={`p-4 rounded-3xl transition-all ${view==='trends'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">insights</span></button>
+                <button onClick={() => setView('library')} className={`p-4 rounded-3xl transition-all ${view==='library'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">menu_book</span></button>
             </nav>
 
             {/* ADD FOOD MODAL */}
@@ -300,7 +358,7 @@ function App() {
                     <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 border-4 border-blue-50" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-xl font-black text-slate-700 uppercase tracking-tight">{editFood.name || 'Add Food'}</h2>
-                            <button onClick={() => setModalOpen(false)} className="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-400">&times;</button>
+                            <button onClick={() => setModalOpen(false)} className="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-400 hover:text-red-400 transition-colors">&times;</button>
                         </div>
                         <div className="space-y-5">
                             <div>
@@ -341,7 +399,7 @@ function App() {
                                     <option value="😵‍💫">😵‍💫 Fail</option>
                                 </select>
                             </div>
-                            <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-4 uppercase">Add to List</button>
+                            <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-4 uppercase font-black">Add to List</button>
                         </div>
                     </div>
                 </div>
@@ -352,6 +410,7 @@ function App() {
                 <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setFinishModalOpen(false)}>
                     <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center border-4 border-blue-50" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-blue-400 mb-8 uppercase">Report</h2>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Duration (mins)</label>
                         <input type="number" className="kawaii-input w-full text-center text-6xl font-black text-blue-400 mb-10" value={workoutDuration} onChange={e => setWorkoutDuration(Number(e.target.value))} />
                         <button onClick={handleFinishWorkout} className="w-full btn-mint py-5 text-lg uppercase font-black">Log & Finish</button>
                     </div>
@@ -362,10 +421,12 @@ function App() {
             {successModalData && (
                 <div className="fixed inset-0 z-[200] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModalData(null)}>
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
-                        <CatGif className="w-32 h-32 mx-auto mb-6" />
-                        <h2 className="text-2xl font-black text-blue-400 mb-2">{successModalData.title}</h2>
-                        <p className="text-lg text-slate-500 font-bold mb-6 italic">"{successModalData.message}"</p>
-                        <p className="text-xs font-black text-blue-300 uppercase tracking-widest">{successModalData.subtext}</p>
+                        <div className="w-24 h-24 mx-auto mb-6 bg-blue-50 rounded-3xl flex items-center justify-center">
+                            <CatGif className="w-20 h-20" />
+                        </div>
+                        <h2 className="text-2xl font-black text-blue-400 mb-2 tracking-tight">{successModalData.title}</h2>
+                        <p className="text-lg text-slate-500 font-bold mb-6 italic leading-snug">"{successModalData.message}"</p>
+                        <p className="text-xs font-black text-blue-300 uppercase tracking-[0.2em]">{successModalData.subtext}</p>
                     </div>
                 </div>
             )}
