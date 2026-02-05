@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meow Macros: LOML Edition</title>
+    <!-- Title set exactly for Home Screen Label -->
+    <title>Meow Macros</title>
     
+    <!-- PWA & Full-Screen Metadata -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png">
+
     <!-- React & DOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -34,11 +41,26 @@
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
-    <!-- Strictly lowercase links for reliability -->
-    <link rel="stylesheet" href="style.css">
+    <!-- Linking to LOML-specific CSS -->
+    <link rel="stylesheet" href="loml_style.css">
 </head>
 <body class="font-nunito overflow-x-hidden selection:bg-blue-200">
+    <!-- "Ready to Bloom" Launch Screen -->
+    <div id="splash-screen" class="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#eff6ff] transition-opacity duration-700">
+        <!-- Reusing the polka-dot pattern for the splash background -->
+        <div class="absolute inset-0 pointer-events-none opacity-50" style="background-image: radial-gradient(#dbeafe 2px, transparent 2px); background-size: 32px 32px;"></div>
+        
+        <div class="relative flex flex-col items-center animate-pop">
+            <span class="absolute -top-12 -left-10 text-5xl animate-bounce">🌸</span>
+            <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png" class="w-40 h-40 drop-shadow-xl z-10" alt="Launch Logo">
+            <span class="absolute -bottom-2 -right-12 text-5xl animate-bounce" style="animation-delay: 0.5s">🌼</span>
+            <h2 class="text-2xl font-black text-blue-400 mt-8 tracking-tight text-center px-6">Ready to bloom &<br/>grow strong!</h2>
+        </div>
+    </div>
+
     <div id="root"></div>
-    <script type="text/babel" src="script.js"></script>
+    
+    <!-- Linking to LOML-specific Script -->
+    <script type="text/babel" src="loml_script.js"></script>
 </body>
 </html>
