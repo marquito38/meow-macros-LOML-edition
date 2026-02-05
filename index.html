@@ -9,7 +9,8 @@
     <!-- PWA & Full-Screen Metadata -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="app-icon.png">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png">
 
     <!-- React & DOM -->
@@ -45,19 +46,6 @@
     <link rel="stylesheet" href="loml_style.css">
 </head>
 <body class="font-nunito overflow-x-hidden selection:bg-blue-200">
-    <!-- "Ready to Bloom" Launch Screen -->
-    <div id="launch-screen" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#eff6ff] transition-opacity duration-500 ease-out">
-        <!-- Reusing the polka-dot pattern for the splash background -->
-        <div class="absolute inset-0 pointer-events-none opacity-50" style="background-image: radial-gradient(#dbeafe 2px, transparent 2px); background-size: 32px 32px;"></div>
-        
-        <div class="relative flex flex-col items-center animate-pop">
-            <span class="absolute -top-12 -left-10 text-5xl animate-bounce">🌸</span>
-            <img src="app-icon.png" id="launch-logo" class="w-40 h-40 drop-shadow-xl z-10" alt="Meow Macros">
-            <span class="absolute -bottom-2 -right-12 text-5xl animate-bounce" style="animation-delay: 0.5s">🌼</span>
-            <h2 class="text-2xl font-black text-blue-400 mt-8 tracking-tight text-center px-6">Ready to bloom &<br/>grow strong!</h2>
-        </div>
-    </div>
-
     <div id="root"></div>
     
     <!-- Linking to LOML-specific Script -->
