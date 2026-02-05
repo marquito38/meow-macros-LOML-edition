@@ -1,6 +1,6 @@
 const { useState, useEffect, useMemo, useRef } = React;
 
-// --- CONSTANTS: LOML EDITION ---
+// --- CONSTANTS: LOML EDITION (2,450 kcal TARGET) ---
 const GOALS = { 
     calories: 2450, 
     carbs: 305, 
@@ -11,12 +11,12 @@ const GOALS = {
 
 // PRELOADED LIBRARY
 const STARTER_LIBRARY = [
-    { id: '1', name: 'Egg Whites', carbs: 0, protein: 11.7, fat: 0, fiber: 0, measure: 'g' },
-    { id: '2', name: 'Greek Yogurt', carbs: 4.1, protein: 10.6, fat: 0, fiber: 0, measure: 'g' },
+    { id: '1', name: 'Egg Whites', carbs: 0, protein: 11.7, fat: 0, fiber: 0, measure: 'g' }, // 170g -> 20P
+    { id: '2', name: 'Greek Yogurt', carbs: 4.1, protein: 10.6, fat: 0, fiber: 0, measure: 'g' }, // 170g -> 18P, 7C
     { id: '3', name: 'Banana', carbs: 22, protein: 1, fat: 0, fiber: 2.5, measure: 'unit' },
-    { id: '4', name: 'Salmon', carbs: 0, protein: 23.3, fat: 8, fiber: 0, measure: 'g' },
-    { id: '5', name: 'Garbanzo Beans', carbs: 16.9, protein: 5.4, fat: 1.5, fiber: 4.6, measure: 'g' },
-    { id: '6', name: 'Avocado', carbs: 8, protein: 2, fat: 14, fiber: 6, measure: 'g' },
+    { id: '4', name: 'Salmon', carbs: 0, protein: 23.3, fat: 8, fiber: 0, measure: 'g' }, // 150g -> 35P, 12F
+    { id: '5', name: 'Garbanzo Beans', carbs: 16.9, protein: 5.4, fat: 1.5, fiber: 4.6, measure: 'g' }, // 130g -> 7P, 22C, 2F, 6Fib
+    { id: '6', name: 'Avocado', carbs: 8, protein: 2, fat: 14, fiber: 6, measure: 'g' }, // 50g -> 1P, 4C, 7F, 3Fib
     { id: '7', name: 'Quinoa', carbs: 26, protein: 5, fat: 2, fiber: 2, measure: 'g' },
     { id: '8', name: 'Chicken Breast', carbs: 0, protein: 31, fat: 3.6, fiber: 0, measure: 'g' }
 ];
@@ -39,7 +39,7 @@ const getLocalYMD = () => {
 const calcCals = (c, p, f) => Math.round((c * 4) + (p * 4) + (f * 9));
 
 // --- COMPONENTS ---
-const CatGif = ({ type, className }) => {
+const CatGif = ({ className }) => {
     const gifUrl = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png";
     return <img src={gifUrl} alt="Mochi Cat" className={`object-contain ${className}`} />;
 };
@@ -48,7 +48,7 @@ const CatPawSwat = ({ trigger }) => {
     if (!trigger) return null;
     return (
         <div className="fixed top-1/2 left-0 w-full pointer-events-none z-[60] flex items-center justify-center animate-swat">
-            <CatGif type="swat" className="w-64 h-64 drop-shadow-2xl" />
+            <CatGif className="w-64 h-64 drop-shadow-2xl" />
         </div>
     );
 };
@@ -74,30 +74,42 @@ function App() {
     const [data, setData] = useState({ history: {}, fitnessHistory: {}, library: STARTER_LIBRARY });
     const [date, setDate] = useState(getLocalYMD());
     
+    // UI State
+    const [welcomeModal, setWelcomeModal] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [workoutModalOpen, setWorkoutModalOpen] = useState(false);
     const [finishModalOpen, setFinishModalOpen] = useState(false);
     const [successModalData, setSuccessModalData] = useState(null); 
     const [swatTrigger, setSwatTrigger] = useState(false);
 
+    // Food Entry
     const [editFood, setEditFood] = useState({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' });
     const [selectedBaseItem, setSelectedBaseItem] = useState(null);
 
+    // Workout Entry
     const [activeWorkout, setActiveWorkout] = useState([]);
     const [newEx, setNewEx] = useState({ name: '', sets: 1, reps: 10, weight: 0, difficulty: '😏' });
     const [workoutDuration, setWorkoutDuration] = useState(30);
 
     const [librarySearch, setLibrarySearch] = useState('');
 
+    // Persistence & One-Time Welcome
     useEffect(() => {
         const saved = localStorage.getItem('meow_loml_v1');
+        const welcomeSeen = localStorage.getItem('loml_welcome_seen');
+        
         if (saved) setData(JSON.parse(saved));
+        if (!welcomeSeen) {
+            setWelcomeModal(true);
+            localStorage.setItem('loml_welcome_seen', 'true');
+        }
     }, []);
 
     useEffect(() => {
         localStorage.setItem('meow_loml_v1', JSON.stringify(data));
     }, [data]);
 
+    // Derived Logic
     const todayLog = data.history[date] || [];
     const todayWorkouts = data.fitnessHistory[date] || [];
     const totals = todayLog.reduce((acc, item) => ({
@@ -158,12 +170,22 @@ function App() {
     };
 
     const handleFinishWorkout = () => {
+        // Calorie Calculation: ~6 kcal/min for female 36y, 5'2", 139lb
         const burned = Math.round(workoutDuration * 6);
-        const workoutLog = { id: Date.now(), duration: workoutDuration, calories: burned, exercises: activeWorkout };
-        setData({ ...data, fitnessHistory: { ...data.fitnessHistory, [date]: [workoutLog, ...(data.fitnessHistory[date] || [])] } });
+        const workoutLog = { 
+            id: Date.now(), 
+            duration: workoutDuration, 
+            calories: burned, 
+            exercises: activeWorkout,
+            quote: MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)]
+        };
+        setData({ 
+            ...data, 
+            fitnessHistory: { ...data.fitnessHistory, [date]: [workoutLog, ...(data.fitnessHistory[date] || [])] } 
+        });
         setSuccessModalData({
             title: "Nice Work, LOML!",
-            message: MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)],
+            message: workoutLog.quote,
             subtext: `Calories Burned: ${burned}`
         });
         setActiveWorkout([]);
@@ -172,7 +194,26 @@ function App() {
 
     return (
         <div className="max-w-md mx-auto min-h-screen px-4 py-6 relative font-nunito">
+            {/* Floral Accents */}
+            <span className="flower" style={{ top: '15%', left: '10%' }}>🌸</span>
+            <span className="flower" style={{ top: '65%', right: '5%', animationDelay: '2s' }}>🌼</span>
+            <span className="flower" style={{ top: '40%', left: '85%', animationDelay: '4s' }}>🌺</span>
+
             <CatPawSwat trigger={swatTrigger} />
+            
+            {/* ONE-TIME WELCOME MODAL */}
+            {welcomeModal && (
+                <div className="fixed inset-0 z-[110] bg-blue-100/90 backdrop-blur-md flex items-center justify-center p-8 animate-pop">
+                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
+                        <CatGif className="w-32 h-32 mx-auto mb-6" />
+                        <h2 className="text-2xl font-black text-blue-400 mb-4">Hello my love</h2>
+                        <p className="text-slate-500 font-bold mb-8">"Good luck on your journey. Your loving husband, Marco."</p>
+                        <button onClick={() => setWelcomeModal(false)} className="btn-mint w-full py-4 text-lg">Let's go!</button>
+                    </div>
+                </div>
+            )}
+
+            {/* SUCCESS MODAL */}
             {successModalData && (
                 <div className="fixed inset-0 z-[100] bg-blue-100/80 backdrop-blur-sm flex items-center justify-center p-6 animate-pop" onClick={() => setSuccessModalData(null)}>
                     <div className="text-center bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm border-4 border-blue-100">
@@ -183,103 +224,211 @@ function App() {
                     </div>
                 </div>
             )}
+
+            {/* VIEWS */}
             {view === 'home' && (
                 <div className="space-y-6 pb-20 safe-pb px-2">
                     <header className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-3">
-                            <CatGif className="w-12 h-12" />
+                            <CatGif className="w-14 h-14" />
                             <div>
-                                <h1 className="text-xl font-black text-blue-400 leading-none">Meow Macros</h1>
-                                <p className="text-[10px] font-bold text-slate-300 uppercase italic">LOML Edition</p>
+                                <h1 className="text-xl font-black text-blue-400 leading-none tracking-tight">Meow Macros</h1>
+                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-1 italic">LOML Edition</p>
                             </div>
                         </div>
                     </header>
-                    <div className="kawaii-card p-6 relative">
+
+                    <div className="kawaii-card p-6 relative overflow-hidden">
                         <div className="flex justify-between items-end mb-6">
-                            <div><h2 className="text-xs font-black text-slate-400 uppercase mb-1">Fuel Remaining</h2><p className={`text-4xl font-black ${remainingCals < 0 ? 'text-red-400' : 'text-slate-700'}`}>{remainingCals} <span className="text-sm font-bold">kcal</span></p></div>
-                            <div className="w-20 h-20 relative flex items-center justify-center animate-bounce-gentle text-blue-300"><span className="material-icons-round text-6xl">favorite</span><span className="absolute text-[10px] font-black text-white">{Math.round((totalEatenCals/adjustedGoal)*100)}%</span></div>
+                            <div>
+                                <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Fuel Remaining</h2>
+                                <p className={`text-5xl font-black tracking-tighter ${remainingCals < 0 ? 'text-red-400' : 'text-slate-700'}`}>{remainingCals} <span className="text-sm font-bold">kcal</span></p>
+                            </div>
+                            <div className="w-20 h-20 relative flex items-center justify-center animate-bounce-gentle text-blue-200">
+                                <span className="material-icons-round text-6xl">favorite</span>
+                                <span className="absolute text-[10px] font-black text-white">{Math.round((totalEatenCals/adjustedGoal)*100)}%</span>
+                            </div>
                         </div>
-                        <ProgressBar current={totals.p} max={GOALS.protein} colorClass="bg-pastel-blue" label="Protein" />
-                        <ProgressBar current={totals.c} max={GOALS.carbs} colorClass="bg-pastel-yellow" label="Carbs" />
-                        <ProgressBar current={totals.f} max={GOALS.fat} colorClass="bg-pastel-pink" label="Fat" />
-                        <ProgressBar current={totals.fib} max={GOALS.fiber} colorClass="bg-pastel-teal" label="Fiber" />
+                        <ProgressBar current={totals.p} max={GOALS.protein} colorClass="bg-blue-300" label="Protein" />
+                        <ProgressBar current={totals.c} max={GOALS.carbs} colorClass="bg-yellow-200" label="Carbs" />
+                        <ProgressBar current={totals.f} max={GOALS.fat} colorClass="bg-pink-300" label="Fat" />
+                        <ProgressBar current={totals.fib} max={GOALS.fiber} colorClass="bg-emerald-200" label="Fiber" />
                     </div>
-                    <button onClick={() => openAddFood()} className="w-full btn-mint p-4 flex items-center justify-center gap-2 text-lg"><span className="material-icons-round">add_circle</span> Add Food</button>
+
+                    <button onClick={() => openAddFood()} className="w-full btn-mint p-4 flex items-center justify-center gap-3 text-lg">
+                        <span className="material-icons-round text-2xl">add_circle</span> ADD FOOD
+                    </button>
+
                     <div className="space-y-3">
-                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest ml-2">Today's Bowl</h3>
-                        {todayLog.length === 0 ? <div className="text-center py-10 opacity-40"><p className="text-xs font-black uppercase">Empty bowl... 😿</p></div> : todayLog.map(item => (
-                            <div key={item.id} className="kawaii-card p-4 flex justify-between items-center border-l-4 border-blue-200">
-                                <div><p className="font-bold text-slate-600 text-sm">{item.name}</p><p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{item.weight}{item.measure} • {Math.round(calcCals(item.c, item.p, item.f))} cal</p></div>
-                                <button onClick={() => setData({...data, history: {...data.history, [date]: todayLog.filter(i=>i.id!==item.id)}})} className="bg-red-50 text-red-300 p-2 rounded-xl"><span className="material-icons-round text-lg">delete</span></button>
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Today's Bowl</h3>
+                        {todayLog.length === 0 ? (
+                            <div className="text-center py-10 opacity-40"><p className="text-xs font-black uppercase">Empty bowl... 😿</p></div>
+                        ) : todayLog.map(item => (
+                            <div key={item.id} className="kawaii-card p-4 flex justify-between items-center border-l-4 border-blue-200 shadow-sm">
+                                <div>
+                                    <p className="font-bold text-slate-600 text-sm">{item.name}</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">
+                                        {item.weight}{item.measure} • {Math.round(calcCals(item.c, item.p, item.f))} cal
+                                    </p>
+                                </div>
+                                <button onClick={() => setData({...data, history: {...data.history, [date]: todayLog.filter(i=>i.id!==item.id)}})} className="bg-red-50 text-red-200 p-2 rounded-2xl"><span className="material-icons-round text-lg">delete</span></button>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
+
             {view === 'fitness' && (
                 <div className="pb-24 safe-pb space-y-6 px-2">
                     <h2 className="text-2xl font-black text-blue-400">Meow Muscles 💪</h2>
+                    
                     <div className="space-y-4">
-                        {activeWorkout.length === 0 && <div className="kawaii-card p-10 text-center opacity-50 border-dashed border-2"><p className="text-xs font-black uppercase">No exercises added yet!</p></div>}
+                        {activeWorkout.length === 0 && (
+                            <div className="kawaii-card p-12 text-center opacity-40 border-dashed border-2 border-slate-100">
+                                <p className="text-xs font-black uppercase">Ready for a mission?</p>
+                            </div>
+                        )}
                         {activeWorkout.map(ex => (
-                            <div key={ex.id} className="kawaii-card p-4 flex justify-between items-center">
-                                <div><p className="font-bold text-slate-700">{ex.name}</p><p className="text-xs text-slate-400">{ex.sets} sets x {ex.reps} reps • {ex.weight} lbs {ex.difficulty}</p></div>
+                            <div key={ex.id} className="kawaii-card p-4 flex justify-between items-center border-l-4 border-blue-300">
+                                <div>
+                                    <p className="font-bold text-slate-700">{ex.name}</p>
+                                    <p className="text-xs text-slate-400 font-bold">{ex.sets} sets x {ex.reps} reps • {ex.weight} lbs {ex.difficulty}</p>
+                                </div>
                                 <button onClick={() => setActiveWorkout(activeWorkout.filter(i => i.id !== ex.id))} className="text-red-200"><span className="material-icons-round">remove_circle</span></button>
                             </div>
                         ))}
-                        <button onClick={() => setWorkoutModalOpen(true)} className="w-full bg-blue-50 text-blue-400 border-2 border-blue-100 border-dashed p-4 rounded-3xl font-black uppercase flex items-center justify-center gap-2"><span className="material-icons-round">add</span> Add Exercise</button>
+                        
+                        <button onClick={() => setWorkoutModalOpen(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-5 rounded-[2rem] font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">
+                            <span className="material-icons-round">add</span> Add Exercise
+                        </button>
                     </div>
-                    {activeWorkout.length > 0 && <button onClick={() => setFinishModalOpen(true)} className="w-full btn-mint p-4 mt-8 uppercase text-lg">Finish Workout</button>}
+
+                    {activeWorkout.length > 0 && (
+                        <button onClick={() => setFinishModalOpen(true)} className="w-full btn-mint p-5 mt-8 uppercase text-lg tracking-widest">
+                            Finish Workout
+                        </button>
+                    )}
                 </div>
             )}
+
             {view === 'library' && (
                 <div className="pb-20 safe-pb px-2">
-                    <h2 className="text-2xl font-black text-blue-400 mb-4">Food Library</h2>
-                    <div className="relative mb-4"><span className="material-icons-round absolute left-4 top-3 text-blue-200">search</span><input className="w-full bg-white pl-12 pr-4 py-3 rounded-2xl shadow-sm outline-none font-bold text-sm" placeholder="Search foods..." value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} /></div>
+                    <h2 className="text-2xl font-black text-blue-400 mb-6">Food Library</h2>
+                    <div className="relative mb-6">
+                        <span className="material-icons-round absolute left-5 top-3.5 text-blue-200">search</span>
+                        <input className="w-full bg-white pl-14 pr-6 py-4 rounded-3xl shadow-sm outline-none font-bold text-sm text-slate-600 focus:ring-4 ring-blue-50" placeholder="Search foods..." value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} />
+                    </div>
                     <div className="space-y-3">
                         {data.library.filter(i => i.name.toLowerCase().includes(librarySearch.toLowerCase())).map(item => (
-                            <button key={item.id} onClick={() => openAddFood(item)} className="w-full kawaii-card p-4 flex justify-between items-center hover:scale-[1.02] transition-transform"><div><p className="font-bold text-slate-600">{item.name}</p><p className="text-[10px] text-slate-400 uppercase font-bold mt-1">Per {item.measure === 'unit' ? 'Unit' : '100g'} • P:{Math.round(item.protein)} C:{Math.round(item.carbs)}</p></div><div className="bg-blue-50 p-2 rounded-full text-blue-300"><span className="material-icons-round">add</span></div></button>
+                            <button key={item.id} onClick={() => openAddFood(item)} className="w-full kawaii-card p-5 flex justify-between items-center text-left hover:scale-[1.02] transition-transform shadow-sm">
+                                <div>
+                                    <p className="font-bold text-slate-600">{item.name}</p>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase mt-1">
+                                        Per {item.measure === 'unit' ? 'Unit' : '100g'} • P:{Math.round(item.protein)} C:{Math.round(item.carbs)}
+                                    </p>
+                                </div>
+                                <div className="bg-blue-50 p-2.5 rounded-2xl text-blue-300 shadow-inner"><span className="material-icons-round">add</span></div>
+                            </button>
                         ))}
                     </div>
                 </div>
             )}
-            <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[400px] bg-white/90 backdrop-blur-md shadow-2xl rounded-3xl p-2 flex justify-around items-center z-40 border border-white">
-                <button onClick={() => setView('home')} className={`p-3 rounded-2xl ${view==='home'?'bg-blue-50 text-blue-400':'text-slate-300'}`}><span className="material-icons-round">home</span></button>
-                <button onClick={() => setView('fitness')} className={`p-3 rounded-2xl ${view==='fitness'?'bg-blue-50 text-blue-400':'text-slate-300'}`}><span className="material-icons-round">fitness_center</span></button>
-                <button onClick={() => setView('library')} className={`p-3 rounded-2xl ${view==='library'?'bg-blue-50 text-blue-400':'text-slate-300'}`}><span className="material-icons-round">menu_book</span></button>
+
+            {/* NAV BAR */}
+            <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[400px] bg-white/95 backdrop-blur-md shadow-2xl rounded-[2.5rem] p-2 flex justify-around items-center z-40 border border-white">
+                <button onClick={() => setView('home')} className={`p-4 rounded-3xl transition-all ${view==='home'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">home</span></button>
+                <button onClick={() => setView('fitness')} className={`p-4 rounded-3xl transition-all ${view==='fitness'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">fitness_center</span></button>
+                <button onClick={() => setView('library')} className={`p-4 rounded-3xl transition-all ${view==='library'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">menu_book</span></button>
             </nav>
+
+            {/* ADD FOOD MODAL */}
             {modalOpen && (
-                <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-end justify-center p-4" onClick={() => setModalOpen(false)}><div className="bg-white w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 border-4 border-blue-50" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-black text-slate-700 uppercase">{editFood.name || 'Add Food'}</h2><button onClick={() => setModalOpen(false)} className="text-slate-400 font-bold text-2xl">&times;</button></div>
-                    <div className="space-y-4">
-                        <input className="kawaii-input w-full font-bold text-sm" value={editFood.name} onChange={e => setEditFood({...editFood, name: e.target.value})} placeholder="Food Name" />
-                        <div><label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-1 block">Amount ({editFood.measure})</label><input type="number" className="kawaii-input w-full font-black text-2xl text-center text-blue-400" value={editFood.weight} onChange={e => handleWeightChange(e.target.value)} /></div>
-                        <div className="bg-slate-50 p-4 rounded-[2rem] grid grid-cols-4 gap-2 text-center">{['carbs', 'protein', 'fat', 'fiber'].map(m => <div key={m}><p className="text-[8px] font-black text-slate-400 uppercase">{m.substring(0,3)}</p><input type="number" className="w-full text-center bg-transparent font-bold text-xs" value={editFood[m]} onChange={e => setEditFood({...editFood, [m]: Number(e.target.value)})} /></div>)}</div>
-                        <button onClick={handleAddFood} className="w-full btn-mint py-4 text-lg">Add to Bowl</button>
+                <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-end justify-center p-4" onClick={() => setModalOpen(false)}>
+                    <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 border-4 border-blue-50" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="text-xl font-black text-slate-700 uppercase tracking-tight">{editFood.name || 'Add Food'}</h2>
+                            <button onClick={() => setModalOpen(false)} className="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-400 hover:text-red-400 transition-colors">&times;</button>
+                        </div>
+                        <div className="space-y-5">
+                            <input className="kawaii-input w-full font-bold text-sm" value={editFood.name} onChange={e => setEditFood({...editFood, name: e.target.value})} placeholder="Food Name" />
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-1 block">Amount ({editFood.measure})</label>
+                                <input type="number" className="kawaii-input w-full font-black text-3xl text-center text-blue-400" value={editFood.weight} onChange={e => handleWeightChange(e.target.value)} />
+                            </div>
+                            <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 grid grid-cols-4 gap-2 text-center">
+                                {['carbs', 'protein', 'fat', 'fiber'].map(m => (
+                                    <div key={m}>
+                                        <p className="text-[8px] font-black text-slate-400 uppercase mb-1">{m.substring(0,3)}</p>
+                                        <input type="number" className="w-full text-center bg-white rounded-lg p-1 font-bold text-[10px] text-slate-600 outline-none" value={editFood[m]} onChange={e => setEditFood({...editFood, [m]: Number(e.target.value)})} />
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={handleAddFood} className="w-full btn-mint py-4 text-lg mt-2">Add to Bowl</button>
+                        </div>
                     </div>
-                </div></div>
+                </div>
             )}
+
+            {/* NEW EXERCISE MODAL */}
             {workoutModalOpen && (
-                <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setWorkoutModalOpen(false)}><div className="bg-white w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl border-4 border-blue-50" onClick={e => e.stopPropagation()}>
-                    <h2 className="text-xl font-black text-slate-700 mb-6 uppercase">New Exercise</h2>
-                    <div className="space-y-4">
-                        <input className="kawaii-input w-full font-bold" value={newEx.name} onChange={e => setNewEx({...newEx, name: e.target.value})} placeholder="Exercise Name" />
-                        <div className="grid grid-cols-2 gap-4"><div><label className="text-[10px] font-black uppercase text-slate-400 ml-2">Sets</label><input type="number" className="kawaii-input w-full text-center" value={newEx.sets} onChange={e => setNewEx({...newEx, sets: Number(e.target.value)})} /></div><div><label className="text-[10px] font-black uppercase text-slate-400 ml-2">Reps</label><input type="number" className="kawaii-input w-full text-center" value={newEx.reps} onChange={e => setNewEx({...newEx, reps: Number(e.target.value)})} /></div></div>
-                        <div className="grid grid-cols-2 gap-4"><div><label className="text-[10px] font-black uppercase text-slate-400 ml-2">Lbs</label><input type="number" className="kawaii-input w-full text-center" value={newEx.weight} onChange={e => setNewEx({...newEx, weight: Number(e.target.value)})} /></div><div><label className="text-[10px] font-black uppercase text-slate-400 ml-2">Feel</label><select className="kawaii-input w-full text-center appearance-none" value={newEx.difficulty} onChange={e => setNewEx({...newEx, difficulty: e.target.value})}><option>😊 Easy</option><option>😏 Mod</option><option>😫 Hard</option><option>😵‍💫 Fail</option></select></div></div>
-                        <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-2">Add to List</button>
+                <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setWorkoutModalOpen(false)}>
+                    <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl border-4 border-blue-50" onClick={e => e.stopPropagation()}>
+                        <h2 className="text-xl font-black text-slate-700 mb-8 uppercase tracking-tight">New Exercise</h2>
+                        <div className="space-y-4">
+                            <input className="kawaii-input w-full font-bold" value={newEx.name} onChange={e => setNewEx({...newEx, name: e.target.value})} placeholder="Exercise Name" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Sets</label>
+                                    <input type="number" className="kawaii-input w-full text-center" value={newEx.sets} onChange={e => setNewEx({...newEx, sets: Number(e.target.value)})} />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Reps</label>
+                                    <input type="number" className="kawaii-input w-full text-center" value={newEx.reps} onChange={e => setNewEx({...newEx, reps: Number(e.target.value)})} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Lbs</label>
+                                    <input type="number" className="kawaii-input w-full text-center" value={newEx.weight} onChange={e => setNewEx({...newEx, weight: Number(e.target.value)})} />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Feel</label>
+                                    <select className="kawaii-input w-full text-center appearance-none cursor-pointer" value={newEx.difficulty} onChange={e => setNewEx({...newEx, difficulty: e.target.value})}>
+                                        <option value="😊">😊 Easy</option>
+                                        <option value="😏">😏 Mod</option>
+                                        <option value="😫">😫 Hard</option>
+                                        <option value="😵‍💫">😵‍💫 Fail</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-4">Add to List</button>
+                        </div>
                     </div>
-                </div></div>
+                </div>
             )}
+
+            {/* MISSION REPORT MODAL */}
             {finishModalOpen && (
-                <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setFinishModalOpen(false)}><div className="bg-white w-full max-w-sm rounded-[2.5rem] p-6 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
-                    <h2 className="text-xl font-black text-slate-700 mb-6 uppercase">Mission Report</h2>
-                    <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">How many minutes spent?</label>
-                    <input type="number" className="kawaii-input w-full text-center text-4xl font-black text-blue-400 mb-6" value={workoutDuration} onChange={e => setWorkoutDuration(Number(e.target.value))} />
-                    <button onClick={handleFinishWorkout} className="w-full btn-mint py-4 text-lg uppercase">Log & Finish</button>
-                </div></div>
+                <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setFinishModalOpen(false)}>
+                    <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl text-center border-4 border-blue-50" onClick={e => e.stopPropagation()}>
+                        <h2 className="text-xl font-black text-blue-400 mb-8 uppercase tracking-widest">Mission Report</h2>
+                        <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block tracking-widest">Minutes spent?</label>
+                        <input type="number" className="kawaii-input w-full text-center text-5xl font-black text-blue-400 mb-8" value={workoutDuration} onChange={e => setWorkoutDuration(Number(e.target.value))} />
+                        <button onClick={handleFinishWorkout} className="w-full btn-mint py-5 text-lg uppercase tracking-widest">Log & Finish</button>
+                    </div>
+                </div>
             )}
         </div>
     );
 }
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+
+// RELIABILITY WRAPPER
+try {
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    }
+} catch (error) {
+    console.error("App Initialization Error:", error);
+}
