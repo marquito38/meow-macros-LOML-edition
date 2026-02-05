@@ -1,6 +1,6 @@
 const { useState, useEffect, useMemo, useRef } = React;
 
-// --- CONSTANTS: LOML EDITION (2,450 kcal TARGET) ---
+// --- CONSTANTS: LOML EDITION TARGETS ---
 const GOALS = { 
     calories: 2450, 
     carbs: 305, 
@@ -9,16 +9,21 @@ const GOALS = {
     fiber: 30 
 };
 
-// PRELOADED LIBRARY
+// PRELOADED LIBRARY (v3.6 Data Alignment)
 const STARTER_LIBRARY = [
     { id: '1', name: 'Egg Whites', carbs: 0, protein: 11.7, fat: 0, fiber: 0, measure: 'g' }, // 170g -> 20P
     { id: '2', name: 'Greek Yogurt', carbs: 4.1, protein: 10.6, fat: 0, fiber: 0, measure: 'g' }, // 170g -> 18P, 7C
     { id: '3', name: 'Banana', carbs: 22, protein: 1, fat: 0, fiber: 2.5, measure: 'unit' },
-    { id: '4', name: 'Salmon', carbs: 0, protein: 23.3, fat: 8, fiber: 0, measure: 'g' }, // 150g -> 35P, 12F
+    { id: '4', name: 'Salmon', carbs: 0, protein: 23.3, fat: 12, fiber: 0, measure: 'g' }, // 150g -> 35P, 12F
     { id: '5', name: 'Garbanzo Beans', carbs: 16.9, protein: 5.4, fat: 1.5, fiber: 4.6, measure: 'g' }, // 130g -> 7P, 22C, 2F, 6Fib
     { id: '6', name: 'Avocado', carbs: 8, protein: 2, fat: 14, fiber: 6, measure: 'g' }, // 50g -> 1P, 4C, 7F, 3Fib
     { id: '7', name: 'Quinoa', carbs: 26, protein: 5, fat: 2, fiber: 2, measure: 'g' },
-    { id: '8', name: 'Chicken Breast', carbs: 0, protein: 31, fat: 3.6, fiber: 0, measure: 'g' }
+    { id: '8', name: 'Chicken Breast', carbs: 0, protein: 31, fat: 3, fiber: 0, measure: 'g' },
+    { id: '9', name: 'Ground Turkey', carbs: 0, protein: 20.6, fat: 7.3, fiber: 0, measure: 'g' },
+    { id: '10', name: 'Black Beans', carbs: 16, protein: 6, fat: 0, fiber: 5, measure: 'g' },
+    { id: '11', name: 'Whole Egg', carbs: 1, protein: 6, fat: 5, fiber: 0, measure: 'unit' },
+    { id: '12', name: 'Apple', carbs: 10, protein: 0, fat: 0, fiber: 2.4, measure: 'g' }, // 150g -> 15C, 2.4Fib
+    { id: '13', name: 'Corn', carbs: 7.2, protein: 0.8, fat: 0.4, fiber: 2, measure: 'g' }
 ];
 
 const MOTIVATION_QUOTES = [
@@ -82,26 +87,27 @@ function App() {
     const [successModalData, setSuccessModalData] = useState(null); 
     const [swatTrigger, setSwatTrigger] = useState(false);
 
-    // Food Entry
+    // Entry State
     const [editFood, setEditFood] = useState({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' });
     const [selectedBaseItem, setSelectedBaseItem] = useState(null);
-
-    // Workout Entry
     const [activeWorkout, setActiveWorkout] = useState([]);
     const [newEx, setNewEx] = useState({ name: '', sets: 1, reps: 10, weight: 0, difficulty: '😏' });
     const [workoutDuration, setWorkoutDuration] = useState(30);
-
     const [librarySearch, setLibrarySearch] = useState('');
 
-    // Persistence & One-Time Welcome
+    // Persistence & First-Time Welcome
     useEffect(() => {
-        const saved = localStorage.getItem('meow_loml_v1');
-        const welcomeSeen = localStorage.getItem('loml_welcome_seen');
-        
-        if (saved) setData(JSON.parse(saved));
-        if (!welcomeSeen) {
-            setWelcomeModal(true);
-            localStorage.setItem('loml_welcome_seen', 'true');
+        try {
+            const saved = localStorage.getItem('meow_loml_v1');
+            const welcomeSeen = localStorage.getItem('loml_welcome_seen');
+            
+            if (saved) setData(JSON.parse(saved));
+            if (!welcomeSeen) {
+                setWelcomeModal(true);
+                localStorage.setItem('loml_welcome_seen', 'true');
+            }
+        } catch (e) {
+            console.error("App Initialization Error:", e);
         }
     }, []);
 
@@ -109,7 +115,7 @@ function App() {
         localStorage.setItem('meow_loml_v1', JSON.stringify(data));
     }, [data]);
 
-    // Derived Logic
+    // Derived Stats
     const todayLog = data.history[date] || [];
     const todayWorkouts = data.fitnessHistory[date] || [];
     const totals = todayLog.reduce((acc, item) => ({
@@ -170,7 +176,7 @@ function App() {
     };
 
     const handleFinishWorkout = () => {
-        // Calorie Calculation: ~6 kcal/min for female 36y, 5'2", 139lb
+        // Burn Calculation: ~6 kcal/min for female 36y, 5'2", 139lb
         const burned = Math.round(workoutDuration * 6);
         const workoutLog = { 
             id: Date.now(), 
@@ -186,7 +192,7 @@ function App() {
         setSuccessModalData({
             title: "Nice Work, LOML!",
             message: workoutLog.quote,
-            subtext: `Calories Burned: ${burned}`
+            subtext: `Burned: ${burned} kcal`
         });
         setActiveWorkout([]);
         setFinishModalOpen(false);
@@ -194,33 +200,16 @@ function App() {
 
     return (
         <div className="max-w-md mx-auto min-h-screen px-4 py-6 relative font-nunito">
-            {/* Floral Accents */}
-            <span className="flower" style={{ top: '15%', left: '10%' }}>🌸</span>
-            <span className="flower" style={{ top: '65%', right: '5%', animationDelay: '2s' }}>🌼</span>
-            <span className="flower" style={{ top: '40%', left: '85%', animationDelay: '4s' }}>🌺</span>
-
             <CatPawSwat trigger={swatTrigger} />
             
-            {/* ONE-TIME WELCOME MODAL */}
+            {/* PERSONAL WELCOME MODAL */}
             {welcomeModal && (
-                <div className="fixed inset-0 z-[110] bg-blue-100/90 backdrop-blur-md flex items-center justify-center p-8 animate-pop">
+                <div className="fixed inset-0 z-[110] bg-blue-100/95 backdrop-blur-md flex items-center justify-center p-8 animate-pop">
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
                         <CatGif className="w-32 h-32 mx-auto mb-6" />
-                        <h2 className="text-2xl font-black text-blue-400 mb-4">Hello my love</h2>
-                        <p className="text-slate-500 font-bold mb-8">"Good luck on your journey. Your loving husband, Marco."</p>
+                        <h2 className="text-2xl font-black text-blue-400 mb-4 tracking-tight">Hello my love</h2>
+                        <p className="text-slate-500 font-bold mb-8 leading-relaxed">"Good luck on your journey. Your loving husband, Marco."</p>
                         <button onClick={() => setWelcomeModal(false)} className="btn-mint w-full py-4 text-lg">Let's go!</button>
-                    </div>
-                </div>
-            )}
-
-            {/* SUCCESS MODAL */}
-            {successModalData && (
-                <div className="fixed inset-0 z-[100] bg-blue-100/80 backdrop-blur-sm flex items-center justify-center p-6 animate-pop" onClick={() => setSuccessModalData(null)}>
-                    <div className="text-center bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm border-4 border-blue-100">
-                        <CatGif className="w-32 h-32 mx-auto mb-4" />
-                        <h2 className="text-2xl font-black text-blue-400 mb-2">{successModalData.title}</h2>
-                        <p className="text-lg text-slate-500 mb-4 font-bold">"{successModalData.message}"</p>
-                        <p className="text-sm font-black text-blue-300 uppercase">{successModalData.subtext}</p>
                     </div>
                 </div>
             )}
@@ -232,7 +221,7 @@ function App() {
                         <div className="flex items-center gap-3">
                             <CatGif className="w-14 h-14" />
                             <div>
-                                <h1 className="text-xl font-black text-blue-400 leading-none tracking-tight">Meow Macros</h1>
+                                <h1 className="text-xl font-black text-blue-400 leading-none">Meow Macros</h1>
                                 <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-1 italic">LOML Edition</p>
                             </div>
                         </div>
@@ -252,7 +241,7 @@ function App() {
                         <ProgressBar current={totals.p} max={GOALS.protein} colorClass="bg-blue-300" label="Protein" />
                         <ProgressBar current={totals.c} max={GOALS.carbs} colorClass="bg-yellow-200" label="Carbs" />
                         <ProgressBar current={totals.f} max={GOALS.fat} colorClass="bg-pink-300" label="Fat" />
-                        <ProgressBar current={totals.fib} max={GOALS.fiber} colorClass="bg-emerald-200" label="Fiber" />
+                        <ProgressBar current={totals.fib} max={GOALS.fiber} colorClass="bg-emerald-300" label="Fiber" />
                     </div>
 
                     <button onClick={() => openAddFood()} className="w-full btn-mint p-4 flex items-center justify-center gap-3 text-lg">
@@ -262,11 +251,11 @@ function App() {
                     <div className="space-y-3">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Today's Bowl</h3>
                         {todayLog.length === 0 ? (
-                            <div className="text-center py-10 opacity-40"><p className="text-xs font-black uppercase">Empty bowl... 😿</p></div>
+                            <div className="text-center py-10 opacity-30 italic"><p className="text-xs font-black">Waiting for your first entry...</p></div>
                         ) : todayLog.map(item => (
-                            <div key={item.id} className="kawaii-card p-4 flex justify-between items-center border-l-4 border-blue-200 shadow-sm">
+                            <div key={item.id} className="kawaii-card p-4 flex justify-between items-center shadow-sm">
                                 <div>
-                                    <p className="font-bold text-slate-600 text-sm">{item.name}</p>
+                                    <p className="font-bold text-slate-600 text-sm leading-tight">{item.name}</p>
                                     <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">
                                         {item.weight}{item.measure} • {Math.round(calcCals(item.c, item.p, item.f))} cal
                                     </p>
@@ -281,7 +270,6 @@ function App() {
             {view === 'fitness' && (
                 <div className="pb-24 safe-pb space-y-6 px-2">
                     <h2 className="text-2xl font-black text-blue-400">Meow Muscles 💪</h2>
-                    
                     <div className="space-y-4">
                         {activeWorkout.length === 0 && (
                             <div className="kawaii-card p-12 text-center opacity-40 border-dashed border-2 border-slate-100">
@@ -297,16 +285,12 @@ function App() {
                                 <button onClick={() => setActiveWorkout(activeWorkout.filter(i => i.id !== ex.id))} className="text-red-200"><span className="material-icons-round">remove_circle</span></button>
                             </div>
                         ))}
-                        
-                        <button onClick={() => setWorkoutModalOpen(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-5 rounded-[2rem] font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">
+                        <button onClick={() => setWorkoutModalOpen(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-5 rounded-[2rem] font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-50">
                             <span className="material-icons-round">add</span> Add Exercise
                         </button>
                     </div>
-
                     {activeWorkout.length > 0 && (
-                        <button onClick={() => setFinishModalOpen(true)} className="w-full btn-mint p-5 mt-8 uppercase text-lg tracking-widest">
-                            Finish Workout
-                        </button>
+                        <button onClick={() => setFinishModalOpen(true)} className="w-full btn-mint p-5 mt-8 uppercase text-lg tracking-widest">Finish Workout</button>
                     )}
                 </div>
             )}
@@ -320,15 +304,39 @@ function App() {
                     </div>
                     <div className="space-y-3">
                         {data.library.filter(i => i.name.toLowerCase().includes(librarySearch.toLowerCase())).map(item => (
-                            <button key={item.id} onClick={() => openAddFood(item)} className="w-full kawaii-card p-5 flex justify-between items-center text-left hover:scale-[1.02] transition-transform shadow-sm">
+                            <button key={item.id} onClick={() => openAddFood(item)} className="w-full kawaii-card p-5 flex justify-between items-center text-left hover:scale-[1.02] transition-transform">
                                 <div>
-                                    <p className="font-bold text-slate-600">{item.name}</p>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase mt-1">
+                                    <p className="font-bold text-slate-600 leading-none mb-1">{item.name}</p>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase">
                                         Per {item.measure === 'unit' ? 'Unit' : '100g'} • P:{Math.round(item.protein)} C:{Math.round(item.carbs)}
                                     </p>
                                 </div>
-                                <div className="bg-blue-50 p-2.5 rounded-2xl text-blue-300 shadow-inner"><span className="material-icons-round">add</span></div>
+                                <div className="bg-blue-50 p-2.5 rounded-2xl text-blue-300"><span className="material-icons-round">add</span></div>
                             </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {view === 'trends' && (
+                <div className="pb-20 safe-pb space-y-6 px-2">
+                    <h2 className="text-2xl font-black text-blue-400 text-center">Your Progress 📈</h2>
+                    <div className="space-y-4">
+                        {Object.entries(data.fitnessHistory).length === 0 ? <p className="text-center opacity-40 py-10">No mission logs yet!</p> : 
+                        Object.entries(data.fitnessHistory).flatMap(([d, logs]) => logs.map(l => ({...l, date: d})))
+                        .sort((a,b) => b.id - a.id).slice(0, 10).map(log => (
+                            <div key={log.id} className="kawaii-card p-5">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <p className="font-black text-blue-500 uppercase tracking-tighter text-sm">{log.quote}</p>
+                                        <p className="text-[10px] text-slate-300 font-bold uppercase">{log.date} • {log.duration} min</p>
+                                    </div>
+                                    <p className="font-black text-slate-600">{log.calories} cal</p>
+                                </div>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {log.exercises.map((ex, i) => <span key={i} className="text-[8px] bg-blue-50 text-blue-400 px-2 py-0.5 rounded-full font-bold uppercase">{ex.name}</span>)}
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -336,9 +344,10 @@ function App() {
 
             {/* NAV BAR */}
             <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[400px] bg-white/95 backdrop-blur-md shadow-2xl rounded-[2.5rem] p-2 flex justify-around items-center z-40 border border-white">
-                <button onClick={() => setView('home')} className={`p-4 rounded-3xl transition-all ${view==='home'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">home</span></button>
-                <button onClick={() => setView('fitness')} className={`p-4 rounded-3xl transition-all ${view==='fitness'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">fitness_center</span></button>
-                <button onClick={() => setView('library')} className={`p-4 rounded-3xl transition-all ${view==='library'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">menu_book</span></button>
+                <button onClick={() => setView('home')} className={`p-4 rounded-3xl transition-all ${view==='home'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">home</span></button>
+                <button onClick={() => setView('fitness')} className={`p-4 rounded-3xl transition-all ${view==='fitness'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">fitness_center</span></button>
+                <button onClick={() => setView('library')} className={`p-4 rounded-3xl transition-all ${view==='library'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">menu_book</span></button>
+                <button onClick={() => setView('trends')} className={`p-4 rounded-3xl transition-all ${view==='trends'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">insights</span></button>
             </nav>
 
             {/* ADD FOOD MODAL */}
@@ -347,13 +356,13 @@ function App() {
                     <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 border-4 border-blue-50" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-xl font-black text-slate-700 uppercase tracking-tight">{editFood.name || 'Add Food'}</h2>
-                            <button onClick={() => setModalOpen(false)} className="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-400 hover:text-red-400 transition-colors">&times;</button>
+                            <button onClick={() => setModalOpen(false)} className="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-400">&times;</button>
                         </div>
                         <div className="space-y-5">
                             <input className="kawaii-input w-full font-bold text-sm" value={editFood.name} onChange={e => setEditFood({...editFood, name: e.target.value})} placeholder="Food Name" />
                             <div>
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-1 block">Amount ({editFood.measure})</label>
-                                <input type="number" className="kawaii-input w-full font-black text-3xl text-center text-blue-400" value={editFood.weight} onChange={e => handleWeightChange(e.target.value)} />
+                                <input type="number" className="kawaii-input w-full font-black text-4xl text-center text-blue-400" value={editFood.weight} onChange={e => handleWeightChange(e.target.value)} />
                             </div>
                             <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 grid grid-cols-4 gap-2 text-center">
                                 {['carbs', 'protein', 'fat', 'fiber'].map(m => (
@@ -363,7 +372,7 @@ function App() {
                                     </div>
                                 ))}
                             </div>
-                            <button onClick={handleAddFood} className="w-full btn-mint py-4 text-lg mt-2">Add to Bowl</button>
+                            <button onClick={handleAddFood} className="w-full btn-mint py-4 text-lg mt-2 uppercase tracking-widest">Add Entry</button>
                         </div>
                     </div>
                 </div>
@@ -375,7 +384,7 @@ function App() {
                     <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl border-4 border-blue-50" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-slate-700 mb-8 uppercase tracking-tight">New Exercise</h2>
                         <div className="space-y-4">
-                            <input className="kawaii-input w-full font-bold" value={newEx.name} onChange={e => setNewEx({...newEx, name: e.target.value})} placeholder="Exercise Name" />
+                            <input className="kawaii-input w-full font-bold" value={newEx.name} onChange={e => setNewEx({...newEx, name: e.target.value})} placeholder="Exercise (e.g. Squat)" />
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Sets</label>
@@ -394,14 +403,14 @@ function App() {
                                 <div>
                                     <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Feel</label>
                                     <select className="kawaii-input w-full text-center appearance-none cursor-pointer" value={newEx.difficulty} onChange={e => setNewEx({...newEx, difficulty: e.target.value})}>
-                                        <option value="😊">😊 Easy</option>
-                                        <option value="😏">😏 Mod</option>
-                                        <option value="😫">😫 Hard</option>
+                                        <option value="😺">😺 Easy</option>
+                                        <option value="😼">😼 Moderate</option>
+                                        <option value="🙀">🙀 Hard</option>
                                         <option value="😵‍💫">😵‍💫 Fail</option>
                                     </select>
                                 </div>
                             </div>
-                            <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-4">Add to List</button>
+                            <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-4 uppercase">Add to Workout</button>
                         </div>
                     </div>
                 </div>
@@ -410,11 +419,23 @@ function App() {
             {/* MISSION REPORT MODAL */}
             {finishModalOpen && (
                 <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setFinishModalOpen(false)}>
-                    <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl text-center border-4 border-blue-50" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center border-4 border-blue-50" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-blue-400 mb-8 uppercase tracking-widest">Mission Report</h2>
                         <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block tracking-widest">Minutes spent?</label>
-                        <input type="number" className="kawaii-input w-full text-center text-5xl font-black text-blue-400 mb-8" value={workoutDuration} onChange={e => setWorkoutDuration(Number(e.target.value))} />
+                        <input type="number" className="kawaii-input w-full text-center text-6xl font-black text-blue-400 mb-10" value={workoutDuration} onChange={e => setWorkoutDuration(Number(e.target.value))} />
                         <button onClick={handleFinishWorkout} className="w-full btn-mint py-5 text-lg uppercase tracking-widest">Log & Finish</button>
+                    </div>
+                </div>
+            )}
+
+            {/* SUCCESS FEEDBACK */}
+            {successModalData && (
+                <div className="fixed inset-0 z-[100] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModalData(null)}>
+                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
+                        <CatGif className="w-32 h-32 mx-auto mb-6" />
+                        <h2 className="text-2xl font-black text-blue-400 mb-2">{successModalData.title}</h2>
+                        <p className="text-lg text-slate-500 font-bold mb-6 italic">"{successModalData.message}"</p>
+                        <p className="text-xs font-black text-blue-300 uppercase tracking-widest">{successModalData.subtext}</p>
                     </div>
                 </div>
             )}
@@ -422,13 +443,5 @@ function App() {
     );
 }
 
-// RELIABILITY WRAPPER
-try {
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-        const root = ReactDOM.createRoot(rootElement);
-        root.render(<App />);
-    }
-} catch (error) {
-    console.error("App Initialization Error:", error);
-}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
