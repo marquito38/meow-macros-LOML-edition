@@ -1,6 +1,17 @@
+// --- LAUNCH SCREEN LOGIC ---
+window.addEventListener('load', () => {
+    const splash = document.getElementById('launch-screen');
+    if (splash) {
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+        }, 2000); // 2-second professional delay
+    }
+});
+
 const { useState, useEffect, useMemo, useRef } = React;
 
-// --- CONSTANTS: LOML EDITION ---
+// --- CONSTANTS: LOML EDITION (2450 kcal) ---
 const GOALS = { 
     calories: 2450, 
     carbs: 305, 
@@ -9,7 +20,7 @@ const GOALS = {
     fiber: 30 
 };
 
-// PRELOADED LIBRARY
+// PRELOADED LIBRARY (Spreadsheet Alignment)
 const STARTER_LIBRARY = [
     { id: '1', name: 'Egg Whites', carbs: 0, protein: 11.7, fat: 0, fiber: 0, measure: 'g' },
     { id: '2', name: 'Greek Yogurt', carbs: 4.1, protein: 10.6, fat: 0, fiber: 0, measure: 'g' },
@@ -41,7 +52,7 @@ const calcCals = (c, p, f) => Math.round((c * 4) + (p * 4) + (f * 9));
 // --- COMPONENTS ---
 const CatGif = ({ className }) => {
     const gifUrl = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png";
-    return <img src={gifUrl} alt="Mochi Cat" className={`object-contain ${className}`} />;
+    return <img src={gifUrl} alt="Cat" className={`object-contain ${className}`} />;
 };
 
 const ProgressBar = ({ current, max, colorClass, label }) => {
@@ -89,7 +100,6 @@ function App() {
             
             if (saved) setData(JSON.parse(saved));
             
-            // Welcome Modal Logic
             if (!welcomeSeen) {
                 setWelcomeModal(true);
                 localStorage.setItem('loml_welcome_seen', 'true');
@@ -103,7 +113,6 @@ function App() {
         localStorage.setItem('meow_loml_v1', JSON.stringify(data));
     }, [data]);
 
-    // Derived Logic
     const todayLog = data.history[date] || [];
     const todayWorkouts = data.fitnessHistory[date] || [];
     const totals = todayLog.reduce((acc, item) => ({
@@ -144,25 +153,6 @@ function App() {
         setTimeout(() => setSwatTrigger(false), 1200);
     };
 
-    const openAddFood = (item = null) => {
-        if (item) {
-            const startWeight = item.measure === 'unit' ? 1 : 100;
-            setEditFood({ ...item, weight: startWeight });
-            setSelectedBaseItem(item);
-        } else {
-            setEditFood({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' });
-            setSelectedBaseItem(null);
-        }
-        setModalOpen(true);
-    };
-
-    const handleAddExercise = () => {
-        if (!newEx.name) return;
-        setActiveWorkout([...activeWorkout, { ...newEx, id: Date.now() }]);
-        setNewEx({ name: '', sets: 1, reps: 10, weight: 0, difficulty: '😏' });
-        setWorkoutModalOpen(false);
-    };
-
     const handleFinishWorkout = () => {
         const burned = Math.round(workoutDuration * 6);
         const log = { 
@@ -187,6 +177,9 @@ function App() {
 
     return (
         <div className="max-w-md mx-auto min-h-screen px-4 py-6 relative font-nunito text-slate-800">
+            {/* Floral Accents */}
+            <span className="flower-accent text-3xl" style={{top: '5%', left: '5%'}}>🌸</span>
+            <span className="flower-accent text-3xl" style={{bottom: '10%', right: '10%', animationDelay: '3s'}}>🌼</span>
             
             {/* WELCOME MODAL */}
             {welcomeModal && (
@@ -230,8 +223,8 @@ function App() {
                         <ProgressBar current={totals.fib} max={GOALS.fiber} colorClass="bg-emerald-300" label="Fiber" />
                     </div>
 
-                    <button onClick={() => openAddFood()} className="w-full btn-mint p-4 flex items-center justify-center gap-3 text-lg">
-                        <span className="material-icons-round text-2xl">add_circle</span> ADD FOOD
+                    <button onClick={() => setView('library')} className="w-full btn-mint p-4 flex items-center justify-center gap-3 text-lg uppercase tracking-widest font-black">
+                        <span className="material-icons-round text-2xl">add_circle</span> Add Food
                     </button>
 
                     <div className="space-y-3">
@@ -276,14 +269,17 @@ function App() {
 
             {view === 'library' && (
                 <div className="pb-20 safe-pb px-2">
-                    <h2 className="text-2xl font-black text-blue-400 mb-6">Food Library</h2>
+                    <div className="flex items-center gap-4 mb-6">
+                        <button onClick={() => setView('home')} className="p-2 text-slate-400"><span className="material-icons-round">arrow_back</span></button>
+                        <h2 className="text-2xl font-black text-blue-400">Food Library</h2>
+                    </div>
                     <div className="relative mb-6">
                         <span className="material-icons-round absolute left-5 top-3.5 text-blue-200">search</span>
-                        <input className="w-full bg-white pl-14 pr-6 py-4 rounded-3xl shadow-sm outline-none font-bold text-sm text-slate-600" placeholder="Search foods..." value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} />
+                        <input className="w-full bg-white pl-14 pr-6 py-4 rounded-3xl shadow-sm outline-none font-bold text-sm text-slate-600 focus:ring-4 ring-blue-50" placeholder="Search foods..." value={librarySearch} onChange={e => setLibrarySearch(e.target.value)} />
                     </div>
                     <div className="space-y-3">
                         {data.library.filter(i => i.name.toLowerCase().includes(librarySearch.toLowerCase())).map(item => (
-                            <button key={item.id} onClick={() => openAddFood(item)} className="w-full kawaii-card p-5 flex justify-between items-center text-left hover:scale-[1.02] transition-transform">
+                            <button key={item.id} onClick={() => { openAddFood(item); }} className="w-full kawaii-card p-5 flex justify-between items-center text-left hover:scale-[1.02] transition-transform">
                                 <div><p className="font-bold text-slate-600 leading-none mb-1">{item.name}</p><p className="text-[10px] text-slate-400 font-black uppercase">Per {item.measure === 'unit' ? 'Unit' : '100g'} • P:{Math.round(item.protein)} C:{Math.round(item.carbs)}</p></div>
                                 <div className="bg-blue-50 p-2.5 rounded-2xl text-blue-300"><span className="material-icons-round">add</span></div>
                             </button>
@@ -296,19 +292,17 @@ function App() {
             <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[400px] bg-white/95 backdrop-blur-md shadow-2xl rounded-[2.5rem] p-2 flex justify-around items-center z-40 border border-white">
                 <button onClick={() => setView('home')} className={`p-4 rounded-3xl transition-all ${view==='home'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">home</span></button>
                 <button onClick={() => setView('fitness')} className={`p-4 rounded-3xl transition-all ${view==='fitness'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">fitness_center</span></button>
-                <button onClick={() => setView('library')} className={`p-4 rounded-3xl transition-all ${view==='library'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round text-2xl">menu_book</span></button>
             </nav>
 
             {/* ADD FOOD MODAL */}
             {modalOpen && (
-                <div className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm flex items-end justify-center p-4" onClick={() => setModalOpen(false)}>
+                <div className="fixed inset-0 z-[120] bg-blue-900/20 backdrop-blur-sm flex items-end justify-center p-4" onClick={() => setModalOpen(false)}>
                     <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 border-4 border-blue-50" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center mb-8">
                             <h2 className="text-xl font-black text-slate-700 uppercase tracking-tight">{editFood.name || 'Add Food'}</h2>
                             <button onClick={() => setModalOpen(false)} className="bg-slate-50 w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-400">&times;</button>
                         </div>
                         <div className="space-y-5">
-                            <input className="kawaii-input w-full font-bold text-sm" value={editFood.name} onChange={e => setEditFood({...editFood, name: e.target.value})} placeholder="Food Name" />
                             <div>
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-1 block">Amount ({editFood.measure})</label>
                                 <input type="number" className="kawaii-input w-full font-black text-4xl text-center text-blue-400" value={editFood.weight} onChange={e => handleWeightChange(e.target.value)} />
@@ -321,20 +315,8 @@ function App() {
                                     </div>
                                 ))}
                             </div>
-                            <button onClick={handleAddFood} className="w-full btn-mint py-4 text-lg mt-2 uppercase tracking-widest">Add Entry</button>
+                            <button onClick={() => { handleAddFood(); setView('home'); }} className="w-full btn-mint py-4 text-lg mt-2 uppercase tracking-widest font-black">Add Entry</button>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {/* SUCCESS FEEDBACK */}
-            {successModalData && (
-                <div className="fixed inset-0 z-[100] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModalData(null)}>
-                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-100">
-                        <CatGif className="w-32 h-32 mx-auto mb-6" />
-                        <h2 className="text-2xl font-black text-blue-400 mb-2">{successModalData.title}</h2>
-                        <p className="text-lg text-slate-500 font-bold mb-6 italic">"{successModalData.message}"</p>
-                        <p className="text-xs font-black text-blue-300 uppercase tracking-widest">{successModalData.subtext}</p>
                     </div>
                 </div>
             )}
@@ -359,7 +341,7 @@ function App() {
                                     <option value="😵‍💫">😵‍💫 Fail</option>
                                 </select>
                             </div>
-                            <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-4">Add to List</button>
+                            <button onClick={handleAddExercise} className="w-full btn-mint py-4 mt-4 uppercase">Add to List</button>
                         </div>
                     </div>
                 </div>
@@ -371,7 +353,19 @@ function App() {
                     <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center border-4 border-blue-50" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-blue-400 mb-8 uppercase">Report</h2>
                         <input type="number" className="kawaii-input w-full text-center text-6xl font-black text-blue-400 mb-10" value={workoutDuration} onChange={e => setWorkoutDuration(Number(e.target.value))} />
-                        <button onClick={handleFinishWorkout} className="w-full btn-mint py-5 text-lg uppercase">Log & Finish</button>
+                        <button onClick={handleFinishWorkout} className="w-full btn-mint py-5 text-lg uppercase font-black">Log & Finish</button>
+                    </div>
+                </div>
+            )}
+
+            {/* SUCCESS FEEDBACK */}
+            {successModalData && (
+                <div className="fixed inset-0 z-[200] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModalData(null)}>
+                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
+                        <CatGif className="w-32 h-32 mx-auto mb-6" />
+                        <h2 className="text-2xl font-black text-blue-400 mb-2">{successModalData.title}</h2>
+                        <p className="text-lg text-slate-500 font-bold mb-6 italic">"{successModalData.message}"</p>
+                        <p className="text-xs font-black text-blue-300 uppercase tracking-widest">{successModalData.subtext}</p>
                     </div>
                 </div>
             )}
