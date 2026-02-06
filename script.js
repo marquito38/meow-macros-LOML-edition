@@ -1,14 +1,3 @@
-// --- GLOBAL INITIALIZATION & LAUNCH SCREEN ---
-window.addEventListener('load', () => {
-    const splash = document.getElementById('launch-screen');
-    if (splash) {
-        setTimeout(() => {
-            splash.style.opacity = '0';
-            setTimeout(() => splash.remove(), 500);
-        }, 2000);
-    }
-});
-
 const { useState, useEffect, useMemo, useRef } = React;
 
 // --- CONSTANTS: LOML EDITION ---
@@ -20,6 +9,7 @@ const GOALS = {
     fiber: 30 
 };
 
+// FULL PRELOADED LIBRARY (Spreadsheet Alignment)
 const STARTER_LIBRARY = [
     { id: '1', name: 'Egg Whites', carbs: 0, protein: 11.7, fat: 0, fiber: 0, measure: 'g' },
     { id: '2', name: 'Greek Yogurt', carbs: 4.1, protein: 10.6, fat: 0, fiber: 0, measure: 'g' },
@@ -42,6 +32,7 @@ const MOTIVATION_QUOTES = [
     "Feline strong today! 💪", "Meow-velous progress! ⭐"
 ];
 
+// --- HELPERS ---
 const getLocalYMD = () => {
     const now = new Date();
     const local = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
@@ -52,7 +43,7 @@ const calcCals = (c, p, f) => Math.round((c * 4) + (p * 4) + (f * 9));
 
 const CatGif = ({ className }) => {
     const gifUrl = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png";
-    return <img src={gifUrl} alt="Mochi" className={`object-contain ${className}`} />;
+    return <img src={gifUrl} alt="Cat" className={`object-contain ${className}`} />;
 };
 
 const ProgressBar = ({ current, max, colorClass, label }) => {
@@ -70,6 +61,7 @@ const ProgressBar = ({ current, max, colorClass, label }) => {
     );
 };
 
+// --- MAIN APP ---
 function App() {
     const [view, setView] = useState('home');
     const [data, setData] = useState({ 
@@ -81,7 +73,6 @@ function App() {
     const [date, setDate] = useState(getLocalYMD());
     
     // UI State
-    const [welcomeModal, setWelcomeModal] = useState(false);
     const [foodModal, setFoodModal] = useState(false);
     const [libraryEditModal, setLibraryEditModal] = useState(false);
     const [quickAddModal, setQuickAddModal] = useState(false);
@@ -98,21 +89,16 @@ function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [todayWeight, setTodayWeight] = useState('');
 
-    // Persistence Recovery
+    // Persistence Logic
     useEffect(() => {
         try {
-            const saved = localStorage.getItem('meow_loml_final');
-            const welcomeSeen = localStorage.getItem('loml_welcome_seen');
+            const saved = localStorage.getItem('meow_loml_v3');
             if (saved) setData(JSON.parse(saved));
-            if (!welcomeSeen) {
-                setWelcomeModal(true);
-                localStorage.setItem('loml_welcome_seen', 'true');
-            }
-        } catch (e) { console.error("Data Recovery Error", e); }
+        } catch (e) { console.error("Data Load Error", e); }
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('meow_loml_final', JSON.stringify(data));
+        localStorage.setItem('meow_loml_v3', JSON.stringify(data));
     }, [data]);
 
     // Totals
@@ -176,18 +162,6 @@ function App() {
             <span className="fixed top-10 left-5 opacity-20 text-3xl pointer-events-none">🌸</span>
             <span className="fixed bottom-20 right-5 opacity-20 text-3xl pointer-events-none">🌼</span>
 
-            {/* WELCOME MODAL */}
-            {welcomeModal && (
-                <div className="fixed inset-0 z-[110] bg-blue-100/95 backdrop-blur-md flex items-center justify-center p-8 animate-pop">
-                    <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
-                        <CatGif className="w-32 h-32 mx-auto mb-6" />
-                        <h2 className="text-2xl font-black text-blue-400 mb-4 tracking-tighter">Hello my love</h2>
-                        <p className="text-slate-500 font-bold mb-8 leading-relaxed italic">"Good luck on your journey. Your loving husband, Marco."</p>
-                        <button onClick={() => setWelcomeModal(false)} className="bg-[#34d399] text-white w-full py-4 rounded-3xl font-black text-lg">Let's go!</button>
-                    </div>
-                </div>
-            )}
-
             {/* VIEWS */}
             {view === 'home' && (
                 <div className="space-y-6 pb-24 safe-pb px-2">
@@ -197,8 +171,8 @@ function App() {
                             <div><h1 className="text-xl font-black text-blue-400 leading-none">Meow Macros</h1><p className="text-[10px] font-black text-slate-300 uppercase italic">LOML Edition</p></div>
                         </div>
                         <div className="flex gap-2">
-                             <button onClick={() => setQuickAddModal(true)} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 text-emerald-400"><span className="material-icons-round">bolt</span></button>
-                             <button onClick={() => { setTodayWeight(data.weightLog[date] || ''); setWeightModal(true); }} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 text-blue-300"><span className="material-icons-round">scale</span></button>
+                             <button onClick={() => setQuickAddModal(true)} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 text-emerald-400 active:scale-95 transition-transform"><span className="material-icons-round">bolt</span></button>
+                             <button onClick={() => { setTodayWeight(data.weightLog[date] || ''); setWeightModal(true); }} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-50 text-blue-300 active:scale-95 transition-transform"><span className="material-icons-round">scale</span></button>
                         </div>
                     </header>
 
@@ -237,7 +211,7 @@ function App() {
                                 <button onClick={() => setActiveWorkout(activeWorkout.filter(i => i.id !== ex.id))} className="text-red-200"><span className="material-icons-round">remove_circle</span></button>
                             </div>
                         ))}
-                        <button onClick={() => setWorkoutModal(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-6 rounded-[2.5rem] font-black uppercase flex items-center justify-center gap-2">Add Exercise</button>
+                        <button onClick={() => setWorkoutModal(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-6 rounded-[2.5rem] font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">Add Exercise</button>
                     </div>
                     {activeWorkout.length > 0 && <button onClick={handleFinishWorkout} className="w-full bg-[#34d399] p-5 mt-8 rounded-3xl text-white font-black uppercase tracking-widest shadow-lg">Finish Session</button>}
                 </div>
@@ -250,8 +224,8 @@ function App() {
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Weight Journey</h3>
                         <div className="flex items-end justify-between h-40 gap-1 px-2 border-b border-slate-100">
                             {Object.keys(data.weightLog).sort().slice(-7).map(d => (
-                                <div key={d} className="flex-1 flex flex-col items-center">
-                                    <div className="w-full bg-blue-100 rounded-t-lg transition-all" style={{ height: `${(data.weightLog[d] / 200) * 100}%` }}></div>
+                                <div key={d} className="flex-1 flex flex-col items-center group">
+                                    <div className="w-full bg-blue-100 rounded-t-lg transition-all" style={{ height: `${Math.min(100, (data.weightLog[d] / 200) * 100)}%` }}></div>
                                     <span className="text-[7px] font-bold text-slate-300 uppercase mt-2">{d.slice(-5)}</span>
                                 </div>
                             ))}
@@ -288,8 +262,8 @@ function App() {
                                     <p className="text-[10px] text-slate-400 font-black uppercase">Per {item.measure === 'unit' ? 'Unit' : '100g'} • P:{Math.round(item.protein)} C:{Math.round(item.carbs)}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => { setEditFood(item); setLibraryEditModal(true); }} className="p-2 text-blue-200"><span className="material-icons-round text-lg">edit</span></button>
-                                    <button onClick={() => setData(prev => ({ ...prev, library: prev.library.filter(i => i.id !== item.id) }))} className="p-2 text-red-100"><span className="material-icons-round text-lg">delete</span></button>
+                                    <button onClick={() => { setEditFood(item); setLibraryEditModal(true); }} className="p-2 text-blue-200 hover:text-blue-400 transition-colors"><span className="material-icons-round text-lg">edit</span></button>
+                                    <button onClick={() => setData(prev => ({ ...prev, library: prev.library.filter(i => i.id !== item.id) }))} className="p-2 text-red-100 hover:text-red-400 transition-colors"><span className="material-icons-round text-lg">delete</span></button>
                                 </div>
                             </div>
                         ))}
