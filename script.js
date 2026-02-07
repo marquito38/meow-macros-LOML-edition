@@ -13,15 +13,9 @@ const GOALS = {
 const USER_WEIGHT_KG = 63.5; // 140 lbs
 const MET_VALUE = 6.0;
 
-// Stable GitHub Raw Asset Roster
-const WAITING_CATS = [
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png"
-];
-
-const HAPPY_CATS = [
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Smiling%20Cat%20with%20Heart-Eyes.png"
-];
-
+// STABLE STATIC ASSETS
+const WAITING_CAT = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png";
+const HAPPY_CAT = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Smiling%20Cat%20with%20Heart-Eyes.png";
 const MOCHI_LOGO = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Grinning%20Cat.png";
 
 // FULL PRELOADED LIBRARY
@@ -56,24 +50,14 @@ const getLocalYMD = () => {
 
 const calcCals = (c, p, f) => Math.round((c * 4) + (p * 4) + (f * 9));
 
-// --- FORCE VISIBILITY GIF COMPONENT ---
-const CatGif = ({ mood, forceLarge = false }) => {
-    const [currentGif, setCurrentGif] = useState("");
-
-    useEffect(() => {
-        const pool = mood === 'waiting' ? WAITING_CATS : HAPPY_CATS;
-        setCurrentGif(pool[Math.floor(Math.random() * pool.length)]);
-    }, [mood]);
-
-    if (!currentGif) return null;
-
-    // Use requested 120px forced visibility dimensions
+// --- REFACTORED CAT ICON COMPONENT ---
+const CatIcon = ({ mood }) => {
     return (
-        <div style={{ height: '120px', width: '120px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ height: '120px', width: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img 
-                src={currentGif} 
-                alt="Mochi" 
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
+                src={mood === 'happy' ? HAPPY_CAT : WAITING_CAT} 
+                style={{ height: '100%', width: '100%', objectFit: 'contain' }} 
+                alt="Cat mascot"
             />
         </div>
     );
@@ -166,6 +150,7 @@ function App() {
     };
 
     const handleFinishWorkout = () => {
+        // PERSONALIZED CALORIE MATH: (6.0 * 63.5 * (Minutes / 60))
         const burned = Math.round(6.0 * USER_WEIGHT_KG * (workoutDuration / 60));
         const log = { id: Date.now(), exercises: activeWorkout, duration: workoutDuration, calories: burned, quote: MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)] };
         setData(prev => ({
@@ -235,7 +220,7 @@ function App() {
                         <div className="flex justify-between items-end mb-6">
                             <div><h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 opacity-50">Fuel Remaining</h2><p className={`text-5xl font-black tracking-tighter ${remainingCals < 0 ? 'text-red-400' : 'text-slate-700'}`}>{remainingCals} <span className="text-sm font-bold">kcal</span></p></div>
                             <div className="w-20 h-20 relative flex items-center justify-center animate-bounce text-blue-200">
-                                <CatGif mood={todayLog.length > 0 ? 'happy' : 'waiting'} />
+                                <CatIcon mood={todayLog.length > 0 ? 'happy' : 'waiting'} />
                             </div>
                         </div>
                         <ProgressBar current={totals.c} max={GOALS.carbs} colorClass="bg-yellow-200" label="Carbs" />
@@ -250,7 +235,7 @@ function App() {
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Today's Bowl</h3>
                         {todayLog.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 opacity-30">
-                                <CatGif mood="waiting" forceLarge={true} />
+                                <CatIcon mood="waiting" />
                                 <div className="italic font-black text-xs uppercase tracking-widest mt-4">Empty bowl... 😿</div>
                             </div>
                         ) : todayLog.map(item => (
@@ -446,7 +431,7 @@ function App() {
                 <div className="fixed inset-0 z-[200] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModal(null)}>
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
                         <div className="w-24 h-24 mx-auto mb-6 bg-blue-50 rounded-3xl flex items-center justify-center">
-                            <CatGif mood="happy" forceLarge={true} />
+                            <CatIcon mood="happy" />
                         </div>
                         <h2 className="text-2xl font-black text-blue-400 mb-2 tracking-tight">{successModal.title}</h2>
                         <p className="text-lg text-slate-500 font-bold mb-6 italic leading-snug">"{successModal.message}"</p>
