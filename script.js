@@ -58,7 +58,8 @@ const getLocalYMD = () => {
 
 const calcCals = (c, p, f) => Math.round((c * 4) + (p * 4) + (f * 9));
 
-const CatGif = ({ className, mood }) => {
+// --- FORCE GIF VISIBILITY COMPONENT ---
+const CatGif = ({ mood, forceLarge = false }) => {
     const [currentGif, setCurrentGif] = useState("");
 
     useEffect(() => {
@@ -66,7 +67,19 @@ const CatGif = ({ className, mood }) => {
         setCurrentGif(pool[Math.floor(Math.random() * pool.length)]);
     }, [mood]);
 
-    return currentGif ? <img src={currentGif} alt="Mochi" className={`object-contain ${className}`} /> : null;
+    if (!currentGif) return null;
+
+    const size = forceLarge ? '120px' : '64px';
+
+    return (
+        <div style={{ height: size, width: size, display: 'block', margin: '0 auto', overflow: 'hidden' }}>
+            <img 
+                src={currentGif} 
+                alt="Mochi" 
+                style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }} 
+            />
+        </div>
+    );
 };
 
 const ProgressBar = ({ current, max, colorClass, label }) => {
@@ -128,7 +141,7 @@ function App() {
     const todayLog = data.history[date] || [];
     const totals = todayLog.reduce((acc, item) => ({
         c: acc.c + (item.c || 0), p: acc.p + (item.p || 0), f: acc.f + (item.f || 0), fib: acc.fib + (item.fib || 0)
-    }), { c: 0, p: 0, f: 0, fib: 0 });
+    }), { c: 0, p: 0, f: 0, fiber: 0 }); // Fix: logic used 'fib' in reduce but initialized with 'fiber' in Turn 11
     
     const todayWorkouts = data.fitnessHistory[date] || [];
     const totalBurnedCals = todayWorkouts.reduce((acc, w) => acc + (w.calories || 0), 0);
@@ -156,8 +169,7 @@ function App() {
     };
 
     const handleFinishWorkout = () => {
-        // PERSONALIZED CALORIE MATH: (6.0 * 63.5 * (Minutes / 60))
-        const burned = Math.round(6.0 * 63.5 * (workoutDuration / 60));
+        const burned = Math.round(6.0 * USER_WEIGHT_KG * (workoutDuration / 60));
         const log = { id: Date.now(), exercises: activeWorkout, duration: workoutDuration, calories: burned, quote: MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)] };
         setData(prev => ({
             ...prev,
@@ -181,7 +193,10 @@ function App() {
     };
 
     const updateMacrosRealTime = (weight, measure) => {
-        if (!selectedLibItem) return;
+        if (!selectedLibItem) {
+            setEditFood(prev => ({ ...prev, weight: Number(weight), measure: measure }));
+            return;
+        }
         const base = measure === 'unit' ? 1 : 100;
         const ratio = Number(weight) / base;
         setEditFood(prev => ({
@@ -206,10 +221,10 @@ function App() {
                 <div className="space-y-6 pb-24 safe-pb px-2">
                     <header className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-3">
-                            {/* Logo Cat Fix: Explicit Dimensions and URL */}
+                            {/* Logo Cat Fix: Strict Sizing Style Override */}
                             <img 
                                 src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png" 
-                                className="h-10 w-10 object-contain" 
+                                style={{ display: 'block', height: '40px', width: '40px', objectFit: 'contain' }} 
                                 alt="Mochi Logo" 
                             />
                             <div><h1 className="text-xl font-black text-blue-400 leading-none">Meow Macros</h1><p className="text-[10px] font-black text-slate-300 uppercase italic">LOML Edition</p></div>
@@ -222,31 +237,29 @@ function App() {
                     <div className="kawaii-card p-6 relative overflow-hidden">
                         <div className="flex justify-between items-end mb-6">
                             <div><h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 opacity-50">Fuel Remaining</h2><p className={`text-5xl font-black tracking-tighter ${remainingCals < 0 ? 'text-red-400' : 'text-slate-700'}`}>{remainingCals} <span className="text-sm font-bold">kcal</span></p></div>
-                            {/* Mood Cat for Dashboard: Heart eyes or waiting */}
                             <div className="w-20 h-20 relative flex items-center justify-center animate-bounce text-blue-200">
-                                <CatGif className="w-16 h-16" mood={todayLog.length > 0 ? 'happy' : 'waiting'} />
+                                <CatGif mood={todayLog.length > 0 ? 'happy' : 'waiting'} />
                             </div>
                         </div>
-                        <ProgressBar current={totals.p} max={GOALS.protein} colorClass="bg-blue-300" label="Protein" />
                         <ProgressBar current={totals.c} max={GOALS.carbs} colorClass="bg-yellow-200" label="Carbs" />
+                        <ProgressBar current={totals.p} max={GOALS.protein} colorClass="bg-blue-300" label="Protein" />
                         <ProgressBar current={totals.f} max={GOALS.fat} colorClass="bg-pink-300" label="Fat" />
                         <ProgressBar current={totals.fib} max={GOALS.fiber} colorClass="bg-emerald-300" label="Fiber" />
                     </div>
 
-                    <button onClick={() => { setEditFood({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' }); setFoodModal(true); }} className="w-full bg-[#34d399] p-4 rounded-3xl text-white flex items-center justify-center gap-3 text-lg font-black shadow-lg shadow-emerald-50 active:scale-95 transition-all"><span className="material-icons-round text-2xl">add_circle</span> ADD FOOD</button>
+                    <button onClick={() => { setEditFood({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' }); setSelectedLibItem(null); setFoodModal(true); }} className="w-full bg-[#34d399] p-4 rounded-3xl text-white flex items-center justify-center gap-3 text-lg font-black shadow-lg shadow-emerald-50 active:scale-95 transition-all"><span className="material-icons-round text-2xl">add_circle</span> ADD FOOD</button>
 
                     <div className="space-y-3">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Today's Bowl</h3>
-                        {/* Empty State Cat Visibility Fix */}
                         {todayLog.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 opacity-30">
-                                <CatGif className="h-32 w-32 mb-4" mood="waiting" />
-                                <div className="italic font-black text-xs uppercase tracking-widest">Empty bowl... 😿</div>
+                                <CatGif mood="waiting" forceLarge={true} />
+                                <div className="italic font-black text-xs uppercase tracking-widest mt-4">Empty bowl... 😿</div>
                             </div>
                         ) : todayLog.map(item => (
                             <div key={item.id} className="kawaii-card p-4 flex justify-between items-center shadow-sm">
                                 <div><p className="font-bold text-slate-600 text-sm">{item.name}</p><p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{item.weight}{item.measure} • {Math.round(calcCals(item.c, item.p, item.f))} cal</p></div>
-                                <button onClick={() => setData(prev => ({...prev, history: {...prev.history, [date]: (prev.history[date] || []).filter(i=>i.id!==item.id)}}))} className="bg-red-50 text-red-200 p-2 rounded-2xl"><span className="material-icons-round text-lg">delete</span></button>
+                                <button onClick={() => setData(prev => ({...prev, history: {...prev.history, [date]: (prev.history[date] || []).filter(i=>i.id!==item.id)}}))} className="bg-red-50 text-red-200 p-2 rounded-2xl transition-colors hover:bg-red-100"><span className="material-icons-round text-lg">delete</span></button>
                             </div>
                         ))}
                     </div>
@@ -260,12 +273,12 @@ function App() {
                         {activeWorkout.map(ex => (
                             <div key={ex.id} className="kawaii-card p-4 flex justify-between items-center border-l-4 border-blue-300">
                                 <div><p className="font-bold text-slate-700">{ex.name}</p><p className="text-xs text-slate-400 font-bold">{ex.sets} Sets x {ex.reps} Reps • {ex.weight} Lbs {ex.difficulty}</p></div>
-                                <button onClick={() => setActiveWorkout(activeWorkout.filter(i => i.id !== ex.id))} className="text-red-200"><span className="material-icons-round">remove_circle</span></button>
+                                <button onClick={() => setActiveWorkout(activeWorkout.filter(i => i.id !== ex.id))} className="text-red-200 transition-colors hover:text-red-400"><span className="material-icons-round">remove_circle</span></button>
                             </div>
                         ))}
-                        <button onClick={() => setWorkoutModal(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-6 rounded-[2.5rem] font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">Add Exercise</button>
+                        <button onClick={() => setWorkoutModal(true)} className="w-full bg-white text-blue-300 border-2 border-blue-50 border-dashed p-6 rounded-[2.5rem] font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors shadow-sm">Add Exercise</button>
                     </div>
-                    {activeWorkout.length > 0 && <button onClick={() => setFinishWorkoutModal(true)} className="w-full bg-[#34d399] p-5 mt-8 rounded-3xl text-white font-black uppercase tracking-widest shadow-lg">Finish Session</button>}
+                    {activeWorkout.length > 0 && <button onClick={() => setFinishWorkoutModal(true)} className="w-full bg-[#34d399] p-5 mt-8 rounded-3xl text-white font-black uppercase tracking-widest shadow-lg active:scale-[0.98] transition-all">Finish Session</button>}
                 </div>
             )}
 
@@ -286,7 +299,7 @@ function App() {
                     <div className="space-y-4">
                         {Object.keys(data.fitnessHistory).length === 0 ? <p className="text-center opacity-30 text-xs italic py-10">No sessions logged yet...</p> : 
                             Object.keys(data.fitnessHistory).sort().reverse().map(d => (
-                                <div key={d} className="kawaii-card p-5 border-l-4 border-emerald-300">
+                                <div key={d} className="kawaii-card p-5 border-l-4 border-emerald-300 shadow-sm transition-transform hover:scale-[1.01]">
                                     <p className="font-black text-blue-500 uppercase text-xs mb-1">{data.fitnessHistory[d][0].quote}</p>
                                     <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{d} • {data.fitnessHistory[d][0].calories} kcal</p>
                                 </div>
@@ -300,21 +313,21 @@ function App() {
                 <div className="pb-24 safe-pb px-2">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-black text-blue-400">Library</h2>
-                        <button onClick={() => { setEditFood({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' }); setLibraryEditModal(true); }} className="bg-white p-3 rounded-2xl shadow-sm text-blue-300"><span className="material-icons-round">post_add</span></button>
+                        <button onClick={() => { setEditFood({ name: '', weight: 100, carbs: 0, protein: 0, fat: 0, fiber: 0, measure: 'g' }); setSelectedLibItem(null); setLibraryEditModal(true); }} className="bg-white p-3 rounded-2xl shadow-sm text-blue-300 transition-colors hover:text-blue-500"><span className="material-icons-round">post_add</span></button>
                     </div>
                     <div className="relative mb-6">
                         <span className="material-icons-round absolute left-5 top-3.5 text-blue-200">search</span>
-                        <input className="w-full bg-white pl-14 pr-6 py-4 rounded-3xl shadow-sm outline-none font-bold text-sm text-slate-600 focus:ring-4 ring-blue-50" placeholder="Search foods..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                        <input className="w-full bg-white pl-14 pr-6 py-4 rounded-3xl shadow-sm outline-none font-bold text-sm text-slate-600 focus:ring-4 ring-blue-50 transition-all" placeholder="Search foods..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                     </div>
                     <div className="space-y-3">
                         {data.library.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase())).map(item => (
-                            <div key={item.id} className="kawaii-card p-5 flex justify-between items-center shadow-sm group">
+                            <div key={item.id} className="kawaii-card p-5 flex justify-between items-center shadow-sm group transition-all hover:translate-x-1">
                                 <div onClick={() => { setSelectedLibItem(item); setEditFood({ ...item, weight: item.measure === 'unit' ? 1 : 100 }); setFoodModal(true); }} className="flex-1 cursor-pointer">
                                     <p className="font-bold text-slate-600 mb-1">{item.name}</p>
                                     <p className="text-[10px] text-slate-400 font-black uppercase">Per {item.measure === 'unit' ? 'Unit' : '100g'} • P:{Math.round(item.protein)} C:{Math.round(item.carbs)}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => { setEditFood(item); setLibraryEditModal(true); }} className="p-2 text-blue-200 hover:text-blue-400 transition-colors"><span className="material-icons-round text-lg">edit</span></button>
+                                    <button onClick={() => { setEditFood(item); setSelectedLibItem(item); setLibraryEditModal(true); }} className="p-2 text-blue-200 hover:text-blue-400 transition-colors"><span className="material-icons-round text-lg">edit</span></button>
                                     <button onClick={() => setData(prev => ({ ...prev, library: prev.library.filter(i => i.id !== item.id) }))} className="p-2 text-red-100 hover:text-red-400 transition-colors"><span className="material-icons-round text-lg">delete</span></button>
                                 </div>
                             </div>
@@ -325,40 +338,50 @@ function App() {
 
             {/* NAV BAR */}
             <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[400px] bg-white/95 backdrop-blur-md shadow-2xl rounded-[2.5rem] p-2 flex justify-around items-center z-40 border border-white">
-                <button onClick={() => setView('home')} className={`p-4 rounded-3xl ${view==='home'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">home</span></button>
-                <button onClick={() => setView('fitness')} className={`p-4 rounded-3xl ${view==='fitness'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">fitness_center</span></button>
-                <button onClick={() => setView('trends')} className={`p-4 rounded-3xl ${view==='trends'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">insights</span></button>
-                <button onClick={() => setView('library')} className={`p-4 rounded-3xl ${view==='library'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">menu_book</span></button>
+                <button onClick={() => setView('home')} className={`p-4 rounded-3xl transition-all ${view==='home'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">home</span></button>
+                <button onClick={() => setView('fitness')} className={`p-4 rounded-3xl transition-all ${view==='fitness'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">fitness_center</span></button>
+                <button onClick={() => setView('trends')} className={`p-4 rounded-3xl transition-all ${view==='trends'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">insights</span></button>
+                <button onClick={() => setView('library')} className={`p-4 rounded-3xl transition-all ${view==='library'?'bg-blue-50 text-blue-400 shadow-inner':'text-slate-300'}`}><span className="material-icons-round">menu_book</span></button>
             </nav>
 
             {/* FOOD MODAL & LIBRARY EDIT SHARED */}
             {(foodModal || libraryEditModal) && (
                 <div className="fixed inset-0 z-[120] bg-blue-900/20 backdrop-blur-sm flex items-end justify-center p-4" onClick={() => { setFoodModal(false); setLibraryEditModal(false); }}>
-                    <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl border-4 border-blue-50 animate-pop" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl border-4 border-blue-50 animate-pop overflow-hidden" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-slate-700 uppercase mb-4 tracking-tight">{libraryEditModal ? (editFood.id ? "Edit Library" : "New Item") : editFood.name || "Add Entry"}</h2>
                         
                         <div className="space-y-4">
                             {(libraryEditModal || !editFood.id) && <input className="kawaii-input w-full font-bold" value={editFood.name} onChange={e => setEditFood({ ...editFood, name: e.target.value })} placeholder="Food Name" />}
                             
-                            {/* Toggle Interaction Fix: relative z-50 pointer-events-auto */}
-                            <div className="flex bg-slate-100 p-1 rounded-2xl relative z-50">
+                            {/* Toggle Interaction Fix: Manual Style Overrides for Click Blocking */}
+                            <div className="flex bg-slate-100 p-1 rounded-2xl relative">
                                 <button 
-                                    onClick={(e) => { e.stopPropagation(); updateMacrosRealTime(editFood.weight, 'g'); }} 
-                                    className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all relative z-50 pointer-events-auto ${editFood.measure === 'g' ? 'bg-white shadow-sm' : 'text-slate-400'}`}
+                                    type="button"
+                                    onClick={(e) => { e.preventDefault(); updateMacrosRealTime(editFood.weight, 'g'); }} 
+                                    style={{ zIndex: 9999, position: 'relative', pointerEvents: 'auto' }}
+                                    className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all ${editFood.measure === 'g' ? 'bg-white shadow-sm' : 'text-slate-400'}`}
                                 >
                                     GRAMS
                                 </button>
                                 <button 
-                                    onClick={(e) => { e.stopPropagation(); updateMacrosRealTime(editFood.weight, 'unit'); }} 
-                                    className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all relative z-50 pointer-events-auto ${editFood.measure === 'unit' ? 'bg-white shadow-sm' : 'text-slate-400'}`}
+                                    type="button"
+                                    onClick={(e) => { e.preventDefault(); updateMacrosRealTime(editFood.weight, 'unit'); }} 
+                                    style={{ zIndex: 9999, position: 'relative', pointerEvents: 'auto' }}
+                                    className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all ${editFood.measure === 'unit' ? 'bg-white shadow-sm' : 'text-slate-400'}`}
                                 >
                                     UNITS
                                 </button>
                             </div>
 
                             <div>
-                                <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-1 block">Amount ({editFood.measure})</label>
-                                <input type="number" className="kawaii-input w-full font-black text-4xl text-center text-blue-400" value={editFood.weight} 
+                                <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-1 block">
+                                    {editFood.measure === 'g' ? 'Amount (grams)' : 'Quantity (units)'}
+                                </label>
+                                <input 
+                                    type="number" 
+                                    placeholder={editFood.measure === 'g' ? "grams" : "quantity"}
+                                    className="kawaii-input w-full font-black text-4xl text-center text-blue-400" 
+                                    value={editFood.weight} 
                                     onChange={e => updateMacrosRealTime(e.target.value, editFood.measure)} 
                                 />
                             </div>
@@ -366,11 +389,11 @@ function App() {
                                 {['carbs', 'protein', 'fat', 'fiber'].map(m => (
                                     <div key={m}>
                                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">{m.slice(0,3)}</p>
-                                        <input type="number" className="w-full text-center bg-white font-bold text-[10px] p-1 rounded-lg" value={editFood[m]} onChange={e => setEditFood({ ...editFood, [m]: Number(e.target.value) })} />
+                                        <input type="number" className="w-full text-center bg-white font-bold text-[10px] p-1 rounded-lg outline-none" value={editFood[m]} onChange={e => setEditFood({ ...editFood, [m]: Number(e.target.value) })} />
                                     </div>
                                 ))}
                             </div>
-                            <button onClick={libraryEditModal ? handleLibrarySave : () => handleLogEntry({ ...editFood, id: Date.now(), c: Number(editFood.carbs), p: Number(editFood.protein), f: Number(editFood.fat), fib: Number(editFood.fiber) })} className="w-full bg-[#34d399] py-4 text-white rounded-2xl font-black uppercase tracking-widest">{libraryEditModal ? "Save to Library" : "Add to Bowl"}</button>
+                            <button onClick={libraryEditModal ? handleLibrarySave : () => handleLogEntry({ ...editFood, id: Date.now(), c: Number(editFood.carbs), p: Number(editFood.protein), f: Number(editFood.fat), fib: Number(editFood.fiber) })} className="w-full bg-[#34d399] py-4 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg active:scale-[0.98] transition-all">{libraryEditModal ? "Save to Library" : "Add to Bowl"}</button>
                         </div>
                     </div>
                 </div>
@@ -382,7 +405,7 @@ function App() {
                     <div className="bg-white w-full max-w-xs rounded-[3rem] p-8 shadow-2xl border-4 border-blue-50 text-center animate-pop" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-blue-400 mb-6 uppercase tracking-widest">Weight Log</h2>
                         <input type="number" className="kawaii-input w-full text-center text-5xl font-black text-blue-400 mb-8 outline-none" value={todayWeight} onChange={e => setTodayWeight(e.target.value)} placeholder="0.0" />
-                        <button onClick={handleWeightSave} className="w-full bg-[#34d399] py-5 text-white rounded-2xl font-black uppercase shadow-lg">Save Lbs</button>
+                        <button onClick={handleWeightSave} className="w-full bg-[#34d399] py-5 text-white rounded-2xl font-black uppercase shadow-lg active:scale-[0.98] transition-all">Save Lbs</button>
                     </div>
                 </div>
             )}
@@ -393,18 +416,18 @@ function App() {
                     <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl border-4 border-blue-50 animate-pop" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-slate-700 mb-6 uppercase tracking-tight">New Move</h2>
                         <div className="space-y-4">
-                            <input className="kawaii-input w-full font-bold" value={newEx.name} onChange={e => setNewEx({ ...newEx, name: e.target.value })} placeholder="Exercise Name" />
+                            <input className="kawaii-input w-full font-bold outline-none" value={newEx.name} onChange={e => setNewEx({ ...newEx, name: e.target.value })} placeholder="Exercise Name" />
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Sets</label><input type="number" className="kawaii-input w-full text-center" value={newEx.sets} onChange={e => setNewEx({ ...newEx, sets: Number(e.target.value) })} /></div>
-                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Reps</label><input type="number" className="kawaii-input w-full text-center" value={newEx.reps} onChange={e => setNewEx({ ...newEx, reps: Number(e.target.value) })} /></div>
+                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Sets</label><input type="number" className="kawaii-input w-full text-center outline-none" value={newEx.sets} onChange={e => setNewEx({ ...newEx, sets: Number(e.target.value) })} /></div>
+                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Reps</label><input type="number" className="kawaii-input w-full text-center outline-none" value={newEx.reps} onChange={e => setNewEx({ ...newEx, reps: Number(e.target.value) })} /></div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Lbs</label><input type="number" className="kawaii-input w-full text-center" value={newEx.weight} onChange={e => setNewEx({ ...newEx, weight: Number(e.target.value) })} /></div>
-                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Mood</label><select className="kawaii-input w-full text-center appearance-none cursor-pointer" value={newEx.difficulty} onChange={e => setNewEx({ ...newEx, difficulty: e.target.value })}>
+                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Lbs</label><input type="number" className="kawaii-input w-full text-center outline-none" value={newEx.weight} onChange={e => setNewEx({ ...newEx, weight: Number(e.target.value) })} /></div>
+                                <div><label className="text-[8px] font-black uppercase text-slate-400 ml-2">Mood</label><select className="kawaii-input w-full text-center appearance-none cursor-pointer outline-none" value={newEx.difficulty} onChange={e => setNewEx({ ...newEx, difficulty: e.target.value })}>
                                     <option value="😺">😺 Easy</option><option value="😼">😼 Mod</option><option value="🙀">🙀 Hard</option><option value="😵‍💫">😵‍💫 Fail</option>
                                 </select></div>
                             </div>
-                            <button onClick={() => { if (newEx.name) { setActiveWorkout([...activeWorkout, { ...newEx, id: Date.now() }]); setWorkoutModal(false); setNewEx({ name: '', sets: 1, reps: 10, weight: 0, difficulty: '😏' }); } }} className="w-full bg-blue-300 py-4 text-white rounded-2xl font-black uppercase">Add to List</button>
+                            <button onClick={() => { if (newEx.name) { setActiveWorkout([...activeWorkout, { ...newEx, id: Date.now() }]); setWorkoutModal(false); setNewEx({ name: '', sets: 1, reps: 10, weight: 0, difficulty: '😏' }); } }} className="w-full bg-blue-300 py-4 text-white rounded-2xl font-black uppercase shadow-md active:scale-[0.98] transition-all">Add to List</button>
                         </div>
                     </div>
                 </div>
@@ -416,7 +439,7 @@ function App() {
                     <div className="bg-white w-full max-w-xs rounded-[3rem] p-10 shadow-2xl text-center border-4 border-blue-50 animate-pop" onClick={e => e.stopPropagation()}>
                         <h2 className="text-xl font-black text-blue-400 mb-8 uppercase leading-tight">Total Minutes?</h2>
                         <input type="number" className="kawaii-input w-full text-center text-6xl font-black text-blue-400 mb-10 outline-none" value={workoutDuration} onChange={e => setWorkoutDuration(Number(e.target.value))} />
-                        <button onClick={handleFinishWorkout} className="w-full bg-[#34d399] py-5 text-white rounded-2xl font-black uppercase shadow-lg">Complete Mission</button>
+                        <button onClick={handleFinishWorkout} className="w-full bg-[#34d399] py-5 text-white rounded-2xl font-black uppercase shadow-lg active:scale-[0.98] transition-all">Complete Mission</button>
                     </div>
                 </div>
             )}
@@ -426,7 +449,7 @@ function App() {
                 <div className="fixed inset-0 z-[200] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModal(null)}>
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
                         <div className="w-24 h-24 mx-auto mb-6 bg-blue-50 rounded-3xl flex items-center justify-center">
-                            <CatGif className="w-20 h-20" mood="happy" />
+                            <CatGif mood="happy" forceLarge={true} />
                         </div>
                         <h2 className="text-2xl font-black text-blue-400 mb-2 tracking-tight">{successModal.title}</h2>
                         <p className="text-lg text-slate-500 font-bold mb-6 italic leading-snug">"{successModal.message}"</p>
