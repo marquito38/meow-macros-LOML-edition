@@ -13,10 +13,10 @@ const GOALS = {
 const USER_WEIGHT_KG = 63.5; // 140 lbs
 const MET_VALUE = 6.0;
 
-// STABLE STATIC ASSETS (Mochi Black & White Edition)
-const WAITING_CAT = "https://cdn-icons-png.flaticon.com/512/6211/6211627.png";
-const HAPPY_CAT = "https://cdn-icons-png.flaticon.com/512/6211/6211636.png";
-const MOCHI_LOGO = "https://cdn-icons-png.flaticon.com/512/6211/6211612.png";
+// SYSTEM EMOJI FALLBACK (Mochi Black & White Spirit)
+const WAITING_CAT = "🐱";
+const HAPPY_CAT = "😻";
+const MOCHI_LOGO = "🐾";
 
 // FULL PRELOADED LIBRARY
 const STARTER_LIBRARY = [
@@ -190,8 +190,8 @@ function App() {
                 <div className="space-y-6 pb-24 safe-pb px-2">
                     <header className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-3">
-                            {/* Mochi Logo Fix: Direct Static Link */}
-                            <img src={MOCHI_LOGO} style={{ display: 'block', height: '40px', width: '40px', objectFit: 'contain' }} alt="Mochi" />
+                            {/* Mochi Logo Fix: Emoji Fallback */}
+                            <span style={{ fontSize: '30px' }}>🐾</span>
                             <div><h1 className="text-xl font-black text-blue-400 leading-none">Meow Macros</h1><p className="text-[10px] font-black text-slate-300 uppercase italic">LOML Edition</p></div>
                         </div>
                         <div className="flex gap-2">
@@ -203,7 +203,8 @@ function App() {
                         <div className="flex justify-between items-end mb-6">
                             <div><h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 opacity-50">Fuel Remaining</h2><p className={`text-5xl font-black tracking-tighter ${remainingCals < 0 ? 'text-red-400' : 'text-slate-700'}`}>{remainingCals} <span className="text-sm font-bold">kcal</span></p></div>
                             <div className="w-20 h-20 relative flex items-center justify-center text-blue-200">
-                                <img src={todayLog.length > 0 ? HAPPY_CAT : WAITING_CAT} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Cat Status" />
+                                {/* Dashboard Cat: Emoji Fallback */}
+                                <span style={{ fontSize: '80px' }}>{todayLog.length > 0 ? "😻" : "🐱"}</span>
                             </div>
                         </div>
                         <ProgressBar current={totals.c} max={GOALS.carbs} colorClass="bg-yellow-200" label="Carbs" />
@@ -218,7 +219,8 @@ function App() {
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Today's Bowl</h3>
                         {todayLog.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 opacity-30">
-                                <img src={WAITING_CAT} style={{ height: '100px', width: '100px', objectFit: 'contain', opacity: 0.5 }} alt="Empty" />
+                                {/* Empty State Cat: Emoji Fallback */}
+                                <span style={{ fontSize: '80px', opacity: 0.5 }}>🐱</span>
                                 <div className="italic font-black text-xs uppercase tracking-widest mt-4">Empty bowl... 😿</div>
                             </div>
                         ) : todayLog.map(item => (
@@ -414,7 +416,7 @@ function App() {
                 <div className="fixed inset-0 z-[200] bg-blue-100/90 backdrop-blur-sm flex items-center justify-center p-8 animate-pop" onClick={() => setSuccessModal(null)}>
                     <div className="bg-white p-10 rounded-[3rem] shadow-2xl text-center border-4 border-blue-50">
                         <div className="w-24 h-24 mx-auto mb-6 bg-blue-50 rounded-3xl flex items-center justify-center">
-                            <img src={HAPPY_CAT} style={{ height: '100px', width: '100px', objectFit: 'contain' }} alt="Success Cat" />
+                            <span style={{ fontSize: '80px' }}>{HAPPY_CAT}</span>
                         </div>
                         <h2 className="text-2xl font-black text-blue-400 mb-2 tracking-tight">{successModal.title}</h2>
                         <p className="text-lg text-slate-500 font-bold mb-6 italic leading-snug">"{successModal.message}"</p>
