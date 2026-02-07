@@ -206,7 +206,12 @@ function App() {
                 <div className="space-y-6 pb-24 safe-pb px-2">
                     <header className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-3">
-                            <CatGif className="w-14 h-14" mood={todayLog.length > 0 ? 'happy' : 'waiting'} />
+                            {/* Logo Cat Fix: Explicit Dimensions and URL */}
+                            <img 
+                                src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png" 
+                                className="h-10 w-10 object-contain" 
+                                alt="Mochi Logo" 
+                            />
                             <div><h1 className="text-xl font-black text-blue-400 leading-none">Meow Macros</h1><p className="text-[10px] font-black text-slate-300 uppercase italic">LOML Edition</p></div>
                         </div>
                         <div className="flex gap-2">
@@ -217,9 +222,9 @@ function App() {
                     <div className="kawaii-card p-6 relative overflow-hidden">
                         <div className="flex justify-between items-end mb-6">
                             <div><h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 opacity-50">Fuel Remaining</h2><p className={`text-5xl font-black tracking-tighter ${remainingCals < 0 ? 'text-red-400' : 'text-slate-700'}`}>{remainingCals} <span className="text-sm font-bold">kcal</span></p></div>
+                            {/* Mood Cat for Dashboard: Heart eyes or waiting */}
                             <div className="w-20 h-20 relative flex items-center justify-center animate-bounce text-blue-200">
-                                <span className="material-icons-round text-6xl">favorite</span>
-                                <span className="absolute text-[10px] font-black text-white">{Math.round((totalEatenCals/adjustedGoal)*100)}%</span>
+                                <CatGif className="w-16 h-16" mood={todayLog.length > 0 ? 'happy' : 'waiting'} />
                             </div>
                         </div>
                         <ProgressBar current={totals.p} max={GOALS.protein} colorClass="bg-blue-300" label="Protein" />
@@ -232,7 +237,13 @@ function App() {
 
                     <div className="space-y-3">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Today's Bowl</h3>
-                        {todayLog.length === 0 ? <div className="text-center py-10 opacity-30 italic font-black text-xs uppercase tracking-widest">Empty bowl... 😿</div> : todayLog.map(item => (
+                        {/* Empty State Cat Visibility Fix */}
+                        {todayLog.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                                <CatGif className="h-32 w-32 mb-4" mood="waiting" />
+                                <div className="italic font-black text-xs uppercase tracking-widest">Empty bowl... 😿</div>
+                            </div>
+                        ) : todayLog.map(item => (
                             <div key={item.id} className="kawaii-card p-4 flex justify-between items-center shadow-sm">
                                 <div><p className="font-bold text-slate-600 text-sm">{item.name}</p><p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{item.weight}{item.measure} • {Math.round(calcCals(item.c, item.p, item.f))} cal</p></div>
                                 <button onClick={() => setData(prev => ({...prev, history: {...prev.history, [date]: (prev.history[date] || []).filter(i=>i.id!==item.id)}}))} className="bg-red-50 text-red-200 p-2 rounded-2xl"><span className="material-icons-round text-lg">delete</span></button>
@@ -329,10 +340,20 @@ function App() {
                         <div className="space-y-4">
                             {(libraryEditModal || !editFood.id) && <input className="kawaii-input w-full font-bold" value={editFood.name} onChange={e => setEditFood({ ...editFood, name: e.target.value })} placeholder="Food Name" />}
                             
-                            {/* Toggle & Real-time Math */}
-                            <div className="flex bg-slate-100 p-1 rounded-2xl">
-                                <button onClick={() => updateMacrosRealTime(editFood.weight, 'g')} className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all ${editFood.measure === 'g' ? 'bg-white shadow-sm' : 'text-slate-400'}`}>GRAMS</button>
-                                <button onClick={() => updateMacrosRealTime(editFood.weight, 'unit')} className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all ${editFood.measure === 'unit' ? 'bg-white shadow-sm' : 'text-slate-400'}`}>UNITS</button>
+                            {/* Toggle Interaction Fix: relative z-50 pointer-events-auto */}
+                            <div className="flex bg-slate-100 p-1 rounded-2xl relative z-50">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); updateMacrosRealTime(editFood.weight, 'g'); }} 
+                                    className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all relative z-50 pointer-events-auto ${editFood.measure === 'g' ? 'bg-white shadow-sm' : 'text-slate-400'}`}
+                                >
+                                    GRAMS
+                                </button>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); updateMacrosRealTime(editFood.weight, 'unit'); }} 
+                                    className={`flex-1 py-2 text-[10px] font-black rounded-xl transition-all relative z-50 pointer-events-auto ${editFood.measure === 'unit' ? 'bg-white shadow-sm' : 'text-slate-400'}`}
+                                >
+                                    UNITS
+                                </button>
                             </div>
 
                             <div>
