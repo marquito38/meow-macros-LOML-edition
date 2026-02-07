@@ -13,18 +13,16 @@ const GOALS = {
 const USER_WEIGHT_KG = 63.5; // 140 lbs
 const MET_VALUE = 6.0;
 
+// Stable GitHub Raw Asset Roster
 const WAITING_CATS = [
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png",
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Pouting%20Cat.png",
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Weary%20Cat.png"
+    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png"
 ];
 
 const HAPPY_CATS = [
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Smiling%20Cat%20with%20Heart-Eyes.png",
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Grinning%20Cat%20with%20Smiling%20Eyes.png",
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Kissing%20Cat.png",
-    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20with%20Wry%20Smile.png"
+    "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Smiling%20Cat%20with%20Heart-Eyes.png"
 ];
+
+const MOCHI_LOGO = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Grinning%20Cat.png";
 
 // FULL PRELOADED LIBRARY
 const STARTER_LIBRARY = [
@@ -58,7 +56,7 @@ const getLocalYMD = () => {
 
 const calcCals = (c, p, f) => Math.round((c * 4) + (p * 4) + (f * 9));
 
-// --- FORCE GIF VISIBILITY COMPONENT ---
+// --- FORCE VISIBILITY GIF COMPONENT ---
 const CatGif = ({ mood, forceLarge = false }) => {
     const [currentGif, setCurrentGif] = useState("");
 
@@ -69,14 +67,13 @@ const CatGif = ({ mood, forceLarge = false }) => {
 
     if (!currentGif) return null;
 
-    const size = forceLarge ? '120px' : '64px';
-
+    // Use requested 120px forced visibility dimensions
     return (
-        <div style={{ height: size, width: size, display: 'block', margin: '0 auto', overflow: 'hidden' }}>
+        <div style={{ height: '120px', width: '120px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img 
                 src={currentGif} 
                 alt="Mochi" 
-                style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }} 
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
             />
         </div>
     );
@@ -140,8 +137,8 @@ function App() {
     // Totals
     const todayLog = data.history[date] || [];
     const totals = todayLog.reduce((acc, item) => ({
-        c: acc.c + (item.c || 0), p: acc.p + (item.p || 0), f: acc.f + (item.f || 0), fib: acc.fib + (item.fib || 0)
-    }), { c: 0, p: 0, f: 0, fiber: 0 }); // Fix: logic used 'fib' in reduce but initialized with 'fiber' in Turn 11
+        c: acc.c + (parseFloat(item.c) || 0), p: acc.p + (parseFloat(item.p) || 0), f: acc.f + (parseFloat(item.f) || 0), fib: acc.fib + (parseFloat(item.fib) || 0)
+    }), { c: 0, p: 0, f: 0, fib: 0 });
     
     const todayWorkouts = data.fitnessHistory[date] || [];
     const totalBurnedCals = todayWorkouts.reduce((acc, w) => acc + (w.calories || 0), 0);
@@ -221,9 +218,9 @@ function App() {
                 <div className="space-y-6 pb-24 safe-pb px-2">
                     <header className="flex justify-between items-center mb-2">
                         <div className="flex items-center gap-3">
-                            {/* Logo Cat Fix: Strict Sizing Style Override */}
+                            {/* Mochi Logo Fix: Explicit Dimensions and Stable Raw Link */}
                             <img 
-                                src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png" 
+                                src={MOCHI_LOGO} 
                                 style={{ display: 'block', height: '40px', width: '40px', objectFit: 'contain' }} 
                                 alt="Mochi Logo" 
                             />
@@ -353,7 +350,7 @@ function App() {
                         <div className="space-y-4">
                             {(libraryEditModal || !editFood.id) && <input className="kawaii-input w-full font-bold" value={editFood.name} onChange={e => setEditFood({ ...editFood, name: e.target.value })} placeholder="Food Name" />}
                             
-                            {/* Toggle Interaction Fix: Manual Style Overrides for Click Blocking */}
+                            {/* Toggle Interaction Logic */}
                             <div className="flex bg-slate-100 p-1 rounded-2xl relative">
                                 <button 
                                     type="button"
